@@ -1,0 +1,2003 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Вместе — Dev Console</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&family=Syne:wght@600;800&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#0d0a14;--bg2:#140f20;--bg3:#1c1629;--bg4:#241d33;
+  --bd:#2a2240;--bd2:#3d3360;
+  --acc:#f4729a;--acc2:#c96ce8;--acc3:#7b6cff;
+  --ok:#3fcf8e;--warn:#f5a623;--bad:#ff5e5e;
+  --txt:#ede8f5;--txt2:#9b91b8;--txt3:#5c5378;
+  --sw:228px;--hh:52px;--r:10px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;min-height:100vh;overflow:hidden}
+#app{display:flex;height:100vh}
+a{color:inherit;text-decoration:none}
+
+/* LOGIN */
+#login-screen{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center}
+#login-screen.hidden{display:none}
+.login-box{width:360px;background:var(--bg2);border:1px solid var(--bd);border-radius:16px;padding:36px 32px}
+.login-logo{display:flex;align-items:center;gap:12px;margin-bottom:28px}
+.login-logo-icon{width:40px;height:40px;border-radius:10px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:20px;flex-shrink:0}
+.login-logo-name{font-family:'Syne',sans-serif;font-weight:800;font-size:18px}
+.login-logo-sub{font-size:10px;color:var(--txt3);letter-spacing:1px;text-transform:uppercase;margin-top:1px}
+.login-title{font-family:'Syne',sans-serif;font-size:15px;font-weight:600;margin-bottom:6px}
+.login-sub{font-size:12px;color:var(--txt3);margin-bottom:24px}
+.login-err{display:none;font-size:12px;color:var(--bad);background:rgba(255,94,94,.1);border:1px solid rgba(255,94,94,.25);border-radius:7px;padding:9px 12px;margin-bottom:14px}
+.login-err.show{display:block}
+
+/* SIDEBAR */
+#sidebar{width:var(--sw);background:var(--bg2);border-right:1px solid var(--bd);display:flex;flex-direction:column;flex-shrink:0}
+.logo{padding:14px 18px;border-bottom:1px solid var(--bd);display:flex;align-items:center;gap:10px}
+.logo-icon{width:30px;height:30px;border-radius:8px;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.logo-text{font-family:'Syne',sans-serif;font-weight:800;font-size:14px}
+.logo-sub{font-size:9px;color:var(--txt3);letter-spacing:1.2px;text-transform:uppercase;margin-top:1px}
+.nav{flex:1;padding:8px 0;overflow-y:auto}
+.nav-sec{padding:10px 18px 3px;font-size:9px;color:var(--txt3);letter-spacing:1.5px;text-transform:uppercase}
+.nav-item{display:flex;align-items:center;gap:9px;padding:8px 18px;cursor:pointer;color:var(--txt2);transition:all .15s;border-left:2px solid transparent;font-size:12.5px}
+.nav-item:hover{background:var(--bg3);color:var(--txt)}
+.nav-item.active{background:rgba(244,114,154,.07);color:var(--acc);border-left-color:var(--acc)}
+.nav-item .ic{width:16px;text-align:center;font-size:13px;flex-shrink:0}
+.sidebar-footer{padding:12px 18px;border-top:1px solid var(--bd);font-size:11px;color:var(--txt3);display:flex;align-items:center;justify-content:space-between}
+.conn-dot{display:inline-block;width:7px;height:7px;border-radius:50%;background:var(--bad);margin-right:6px;vertical-align:middle;transition:background .3s}
+.conn-dot.ok{background:var(--ok);animation:pulse 2.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.35}}
+.logout-btn{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:11px;padding:2px 4px;font-family:'Inter',sans-serif;transition:color .15s}
+.logout-btn:hover{color:var(--bad)}
+
+/* MAIN */
+#main{flex:1;display:flex;flex-direction:column;overflow:hidden}
+#header{height:var(--hh);background:var(--bg2);border-bottom:1px solid var(--bd);display:flex;align-items:center;padding:0 20px;gap:10px;flex-shrink:0;justify-content:space-between}
+.header-bc{font-size:12px;color:var(--txt3)}
+.header-bc span{color:var(--txt2)}
+.header-right{display:flex;align-items:center;gap:8px}
+#content{flex:1;overflow-y:auto;padding:20px}
+
+/* PROFILE BUTTON */
+.profile-btn{
+  display:flex;align-items:center;gap:7px;
+  background:var(--bg3);border:1px solid var(--bd);
+  border-radius:8px;padding:5px 10px 5px 7px;
+  cursor:pointer;transition:all .15s;color:var(--txt2);
+  font-family:'Inter',sans-serif;font-size:12px;
+}
+.profile-btn:hover{border-color:var(--bd2);color:var(--txt)}
+.profile-avatar{
+  width:24px;height:24px;border-radius:50%;
+  background:linear-gradient(135deg,var(--acc),var(--acc2));
+  display:flex;align-items:center;justify-content:center;
+  font-size:11px;font-weight:700;color:#fff;flex-shrink:0;
+}
+
+/* BUTTONS */
+.btn{background:var(--bg3);border:1px solid var(--bd);color:var(--txt2);padding:7px 13px;border-radius:8px;cursor:pointer;font-family:'Inter',sans-serif;font-size:12px;transition:all .15s;white-space:nowrap;display:inline-flex;align-items:center;gap:5px}
+.btn:hover{border-color:var(--bd2);color:var(--txt)}
+.btn.acc{background:rgba(244,114,154,.1);border-color:var(--acc);color:var(--acc)}
+.btn.acc:hover{background:rgba(244,114,154,.2)}
+.btn.suc{background:rgba(63,207,142,.08);border-color:var(--ok);color:var(--ok)}
+.btn.dan{background:rgba(255,94,94,.08);border-color:var(--bad);color:var(--bad)}
+.btn.warn{background:rgba(245,166,35,.08);border-color:var(--warn);color:var(--warn)}
+.btn.pur{background:rgba(123,108,255,.1);border-color:var(--acc3);color:var(--acc3)}
+.btn.full{width:100%;justify-content:center}
+.btn.sm{padding:4px 9px;font-size:11px}
+.btn:disabled{opacity:.38;cursor:not-allowed}
+
+/* FORM */
+.field{margin-bottom:13px}
+.field label{display:block;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.9px;margin-bottom:5px}
+.field input,.field select,.field textarea{width:100%;background:var(--bg3);border:1px solid var(--bd);color:var(--txt);padding:8px 11px;border-radius:8px;font-family:'Inter',sans-serif;font-size:13px;outline:none;transition:border-color .15s}
+.field input:focus,.field select:focus,.field textarea:focus{border-color:var(--acc)}
+.field input::placeholder,.field textarea::placeholder{color:var(--txt3)}
+.field textarea{resize:vertical;min-height:72px;line-height:1.5}
+.field select option{background:var(--bg3)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+.g3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:12px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+
+/* CARDS */
+.card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:18px;margin-bottom:14px}
+.card-title{font-family:'Syne',sans-serif;font-weight:600;font-size:11px;color:var(--txt2);text-transform:uppercase;letter-spacing:1px;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--acc);flex-shrink:0}
+.dot.ok{background:var(--ok)}
+.dot.pur{background:var(--acc2)}
+
+/* STAT CARDS */
+.sc{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;position:relative;overflow:hidden}
+.sc::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--acc),var(--acc2));opacity:0;transition:opacity .2s}
+.sc:hover::before{opacity:1}
+.sl{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px}
+.sv{font-family:'Syne',sans-serif;font-size:22px;font-weight:800}
+.ss{font-size:10px;color:var(--txt3);margin-top:4px}
+.sv.pink{color:var(--acc)}.sv.purple{color:var(--acc2)}.sv.blue{color:var(--acc3)}.sv.ok{color:var(--ok)}
+
+/* TABLE */
+.tw{overflow-x:auto}
+table{width:100%;border-collapse:collapse;font-size:12.5px}
+th{text-align:left;padding:8px 12px;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--bd);font-weight:500;white-space:nowrap;background:rgba(0,0,0,.15)}
+th.sortable{cursor:pointer;user-select:none}
+th.sortable:hover{color:var(--txt2)}
+th.sort-asc::after{content:' ↑';color:var(--acc)}
+th.sort-desc::after{content:' ↓';color:var(--acc)}
+td{padding:9px 12px;border-bottom:1px solid var(--bd);color:var(--txt2);vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:rgba(244,114,154,.025)}
+.td-act{display:flex;gap:6px;flex-wrap:wrap}
+
+/* BADGE */
+.badge{display:inline-block;padding:2px 8px;border-radius:4px;font-size:10px;font-weight:500;letter-spacing:.3px;white-space:nowrap}
+.bpk{background:rgba(244,114,154,.15);color:var(--acc)}
+.bg{background:rgba(63,207,142,.12);color:var(--ok)}
+.br{background:rgba(255,94,94,.12);color:var(--bad)}
+.bw{background:rgba(245,166,35,.12);color:var(--warn)}
+.bb{background:rgba(79,158,255,.12);color:#4f9eff}
+.bpur{background:rgba(201,108,232,.12);color:var(--acc2)}
+code{background:var(--bg4);border-radius:5px;padding:2px 6px;font-size:11px;color:var(--acc2);font-family:'JetBrains Mono',monospace}
+
+/* MODAL */
+#mo{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);align-items:center;justify-content:center}
+#mo.open{display:flex}
+.mo-box{background:var(--bg2);border:1px solid var(--bd2);border-radius:14px;padding:24px;width:500px;max-width:94vw;max-height:88vh;overflow-y:auto}
+.mo-box.wide{width:680px}
+.mo-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:18px}
+.mo-title{font-family:'Syne',sans-serif;font-weight:600;font-size:15px}
+.mo-close{background:none;border:none;color:var(--txt3);font-size:18px;cursor:pointer;padding:0 2px;line-height:1;transition:color .15s}
+.mo-close:hover{color:var(--txt)}
+.mo-foot{display:flex;gap:8px;justify-content:flex-end;margin-top:18px}
+
+/* TOAST */
+#toast{position:fixed;bottom:22px;right:22px;background:var(--bg3);border:1px solid var(--bd2);border-radius:9px;padding:11px 16px;font-size:12px;color:var(--txt);z-index:9999;transform:translateY(50px);opacity:0;transition:all .22s;max-width:320px}
+#toast.show{transform:translateY(0);opacity:1}
+#toast.ok{border-color:var(--ok);color:var(--ok)}
+#toast.err{border-color:var(--bad);color:var(--bad)}
+#toast.warn{border-color:var(--warn);color:var(--warn)}
+
+/* MISC */
+.section-head{display:flex;align-items:center;justify-content:space-between;margin-bottom:14px;flex-wrap:wrap;gap:8px}
+.section-head h2{font-family:'Syne',sans-serif;font-weight:600;font-size:16px}
+.empty{color:var(--txt3);font-size:12px;padding:16px 0}
+.divider{border:none;border-top:1px solid var(--bd);margin:16px 0}
+
+/* SQL box */
+.sql-box{background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;margin-top:10px;font-family:'JetBrains Mono',monospace;font-size:11.5px;color:var(--txt2);white-space:pre-wrap;line-height:1.6;position:relative}
+.sql-copy{position:absolute;top:8px;right:8px;background:var(--bg3);border:1px solid var(--bd);color:var(--txt3);cursor:pointer;font-size:10px;padding:3px 8px;border-radius:5px;font-family:'Inter',sans-serif;transition:all .15s}
+.sql-copy:hover{color:var(--txt);border-color:var(--bd2)}
+
+/* KV grid (user profile) */
+.kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.kvi{background:var(--bg3);border-radius:7px;padding:10px 12px;position:relative}
+.kvi:hover .kv-edit-btn{opacity:1}
+.kv-edit-btn{position:absolute;top:6px;right:6px;opacity:0;background:none;border:none;cursor:pointer;color:var(--txt3);font-size:12px;padding:2px 5px;transition:opacity .15s,color .15s;border-radius:4px;font-family:'Inter',sans-serif}
+.kv-edit-btn:hover{color:var(--acc);background:rgba(244,114,154,.12)}
+.kvk{font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.7px;margin-bottom:2px}
+.kvv{font-size:12px;color:var(--txt);word-break:break-all}
+
+/* IE rows */
+.ie-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)}
+.ie-row:last-child{border-bottom:none}
+.ie-key{color:var(--txt2);font-size:12px}
+.ie-val{color:var(--txt);font-size:12px;font-family:'JetBrains Mono',monospace}
+.ie-edit{background:none;border:none;color:var(--txt3);cursor:pointer;font-size:11px;padding:2px 6px;border-radius:4px;transition:all .15s;font-family:'Inter',sans-serif}
+.ie-edit:hover{color:var(--acc);background:rgba(244,114,154,.1)}
+
+/* Source bar */
+.src-bar{display:flex;align-items:center;gap:8px;margin-bottom:6px}
+.src-fill{flex:1;height:6px;border-radius:3px;background:linear-gradient(90deg,var(--acc),var(--acc2));min-width:4px}
+.src-name{font-size:11px;color:var(--txt2);width:140px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+.src-count{font-size:11px;color:var(--txt3);width:30px;text-align:right;flex-shrink:0}
+
+/* Spinner */
+.spin{width:14px;height:14px;border:2px solid var(--bd);border-top-color:var(--acc);border-radius:50%;animation:spin .6s linear infinite;display:inline-block;vertical-align:middle}
+@keyframes spin{to{transform:rotate(360deg)}}
+
+/* formatting toolbar */
+.fmt-bar{display:flex;gap:2px;padding:4px;background:var(--bg3);border:1px solid var(--bd);border-bottom:none;border-radius:8px 8px 0 0}
+.fmt-bar .btn{border-radius:4px;padding:3px 8px;font-size:12px;min-width:28px;justify-content:center}
+.fmt-bar+.field textarea,.fmt-bar~.field textarea{border-radius:0 0 8px 8px}
+
+/* overview mini-activity */
+.act-dot{display:inline-block;width:8px;height:8px;border-radius:50%;margin:1px;background:var(--bg4)}
+.act-dot.d1{background:rgba(244,114,154,.35)}
+.act-dot.d2{background:rgba(244,114,154,.6)}
+.act-dot.d3{background:rgba(244,114,154,.85)}
+.act-dot.d4{background:var(--acc)}
+
+/* filter row */
+.filter-row{display:flex;gap:8px;flex-wrap:wrap;align-items:center;margin-bottom:12px}
+.filter-input{background:var(--bg3);border:1px solid var(--bd);color:var(--txt);padding:7px 12px;border-radius:8px;font:inherit;font-size:12px;outline:none;transition:border-color .15s}
+.filter-input:focus{border-color:var(--acc)}
+.filter-input::placeholder{color:var(--txt3)}
+select.filter-input{cursor:pointer}
+
+/* user profile page */
+.user-profile-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:18px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r)}
+.user-avatar-lg{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;font-family:'Syne',sans-serif;font-weight:800;color:#fff}
+.user-profile-name{font-family:'Syne',sans-serif;font-weight:800;font-size:20px}
+.user-profile-meta{font-size:11px;color:var(--txt3);margin-top:3px}
+
+/* promo uses mini table inside modal */
+.mini-table{width:100%;border-collapse:collapse;font-size:12px}
+.mini-table th{text-align:left;padding:5px 8px;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--bd);background:rgba(0,0,0,.2)}
+.mini-table td{padding:6px 8px;border-bottom:1px solid var(--bd);color:var(--txt2)}
+.mini-table tr:last-child td{border-bottom:none}
+
+@media(max-width:720px){
+  #sidebar{display:none}
+  .g2,.g3,.g4{grid-template-columns:1fr}
+}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-box">
+    <div class="login-logo">
+      <div class="login-logo-icon">♥</div>
+      <div>
+        <div class="login-logo-name">Вместе</div>
+        <div class="login-logo-sub">Dev Console</div>
+      </div>
+    </div>
+    <div class="login-title">Вход</div>
+    <div class="login-sub">Доступ только для администраторов бота.</div>
+    <div id="login-err" class="login-err"></div>
+    <div class="field"><label>Логин</label><input id="ls-login" autocomplete="username" placeholder="admin"></div>
+    <div class="field"><label>Пароль</label><input id="ls-pass" type="password" autocomplete="current-password" placeholder="••••••••"></div>
+    <button class="btn acc full" id="ls-login-btn" onclick="doLogin()">Войти</button>
+  </div>
+</div>
+
+<!-- APP -->
+<div id="app" style="display:none">
+
+<div id="sidebar">
+  <div class="logo">
+    <div class="logo-icon">♥</div>
+    <div>
+      <div class="logo-text">Вместе</div>
+      <div class="logo-sub">Dev Console</div>
+    </div>
+  </div>
+  <nav class="nav">
+    <div class="nav-sec">Аналитика</div>
+    <div class="nav-item active" onclick="go('overview')" data-page="overview"><span class="ic">◈</span>Сводка</div>
+    <div class="nav-item" onclick="go('users')" data-page="users"><span class="ic">◉</span>Пользователи</div>
+    <div class="nav-item" onclick="go('sources')" data-page="sources"><span class="ic">⬡</span>Источники</div>
+    <div class="nav-sec">Монетизация</div>
+    <div class="nav-item" onclick="go('promos')" data-page="promos"><span class="ic">◇</span>Промокоды</div>
+    <div class="nav-item" onclick="go('pricing')" data-page="pricing"><span class="ic">✦</span>Цены</div>
+    <div class="nav-sec">Маркетинг</div>
+    <div class="nav-item" onclick="go('broadcast')" data-page="broadcast"><span class="ic">📣</span>Рассылка</div>
+    <div class="nav-item" onclick="go('contacts')" data-page="contacts"><span class="ic">◎</span>Контакты</div>
+    <div class="nav-sec">Система</div>
+    <div class="nav-item" onclick="go('admins')" data-page="admins"><span class="ic">◈</span>Аккаунты</div>
+    <div class="nav-item" onclick="go('database')" data-page="database"><span class="ic">⬡</span>База данных</div>
+    <div class="nav-item" onclick="go('settings')" data-page="settings"><span class="ic">⚙</span>Настройки</div>
+  </nav>
+  <div class="sidebar-footer">
+    <span><span class="conn-dot" id="conn-dot"></span><span id="conn-label">Нет соединения</span></span>
+    <button class="logout-btn" onclick="doLogout()">Выйти</button>
+  </div>
+</div>
+
+<div id="main">
+  <div id="header">
+    <div class="header-bc">Вместе / <span id="page-title">Сводка</span></div>
+    <div class="header-right">
+      <button class="btn" onclick="refreshCurrent()">↻ Обновить</button>
+      <button class="profile-btn" onclick="openMyProfile()" id="profile-btn">
+        <div class="profile-avatar" id="profile-av">?</div>
+        <span id="profile-name">—</span>
+      </button>
+    </div>
+  </div>
+  <div id="content"><div style="color:var(--txt3);font-size:13px;padding:40px 0;text-align:center"><span class="spin"></span></div></div>
+</div>
+
+</div><!-- /#app -->
+
+<!-- MODAL -->
+<div id="mo" onclick="closeMo(event)">
+  <div class="mo-box" id="mo-box">
+    <div class="mo-head">
+      <div class="mo-title" id="mt"></div>
+      <button class="mo-close" onclick="closeMo()">×</button>
+    </div>
+    <div id="mb"></div>
+    <div class="mo-foot" id="ma"></div>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+/* ══════════════ HARDCODED CREDENTIALS ══════════════ */
+const SB_URL = 'https://kscxfeqmraklylaudtnf.supabase.co';
+const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImtzY3hmZXFtcmFrbHlsYXVkdG5mIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3OTc0MjE5MiwiZXhwIjoyMDk1MzE4MTkyfQ.blVQ7D4pmtgYxkCsn1oIjJzy77B1VsN4yJQmtvOnMeE';
+
+/* ══════════════ STATE ══════════════ */
+const S = { me: null, page: 'overview', url: SB_URL, key: SB_KEY };
+
+/* ══════════════ SUPABASE REST ══════════════ */
+function rest(p){ return SB_URL.replace(/\/$/, '') + '/rest/v1/' + p; }
+function hdrs(x={}){ return { apikey:SB_KEY, Authorization:'Bearer '+SB_KEY, 'Content-Type':'application/json', ...x }; }
+async function api(path, opts={}){
+  const r = await fetch(rest(path), {...opts, headers:hdrs(opts.headers||{})});
+  if(!r.ok){ const t=await r.text().catch(()=>''); throw new Error(t||'Supabase '+r.status); }
+  if(r.status===204) return null;
+  const t=await r.text(); return t?JSON.parse(t):null;
+}
+async function sel(t,q='select=*'){ return (await api(t+'?'+q))||[]; }
+async function ins(t,row){ return api(t,{method:'POST',headers:{Prefer:'return=representation'},body:JSON.stringify(row)}); }
+async function upd(t,q,row){ return api(t+'?'+q,{method:'PATCH',headers:{Prefer:'return=representation'},body:JSON.stringify(row)}); }
+async function del(t,q){ return api(t+'?'+q,{method:'DELETE'}); }
+
+/* ══════════════ AUTH ══════════════ */
+async function doLogin(){
+  const login = document.getElementById('ls-login').value.trim();
+  const pass  = document.getElementById('ls-pass').value;
+  if(!login||!pass){ showLoginErr('Введи логин и пароль.'); return; }
+  const btn = document.getElementById('ls-login-btn');
+  btn.disabled=true; btn.textContent='Входим…';
+  try{
+    // сначала пробуем таблицу console_accounts
+    let me = null;
+    try{
+      const rows = await sel('console_accounts',
+        `select=*&login=eq.${encodeURIComponent(login)}&password_hash=eq.${encodeURIComponent(pass)}&is_active=eq.true&limit=1`);
+      if(rows.length) me = rows[0];
+    }catch(e2){
+      // таблица не существует — первый запуск
+      if(e2.message.includes('42P01')||e2.message.includes('does not exist')){
+        me = {login, display_name: login, role:'superadmin'};
+      } else { throw e2; }
+    }
+    if(!me){ showLoginErr('Неверный логин или пароль.'); return; }
+    S.me = me;
+    localStorage.setItem('vmeste_session', JSON.stringify(me));
+    startApp();
+  }catch(e){ showLoginErr(e.message); }
+  finally{ btn.disabled=false; btn.textContent='Войти'; }
+}
+
+function doLogout(){ localStorage.removeItem('vmeste_session'); location.reload(); }
+function showLoginErr(m){ const el=document.getElementById('login-err'); el.textContent=m; el.classList.add('show'); }
+
+function startApp(){
+  document.getElementById('login-screen').classList.add('hidden');
+  document.getElementById('app').style.display='flex';
+  const initials = (S.me.display_name||S.me.login||'?').charAt(0).toUpperCase();
+  document.getElementById('profile-av').textContent = initials;
+  document.getElementById('profile-name').textContent = S.me.display_name||S.me.login;
+  setConn(true);
+  go('overview');
+}
+
+function openMyProfile(){
+  const m = S.me||{};
+  openMo('Мой профиль', `
+    <div class="user-profile-header" style="margin-bottom:0">
+      <div class="user-avatar-lg">${(m.display_name||m.login||'?').charAt(0).toUpperCase()}</div>
+      <div>
+        <div class="user-profile-name">${esc(m.display_name||m.login||'')}</div>
+        <div class="user-profile-meta">@${esc(m.login||'')} · роль: ${esc(m.role||'?')}</div>
+      </div>
+    </div>
+    <hr class="divider">
+    <div class="field"><label>Новый пароль</label><input id="mp-pass" type="password" placeholder="Оставь пустым, чтобы не менять"></div>
+    <div class="field"><label>Отображаемое имя</label><input id="mp-name" value="${esc(m.display_name||'')}"></div>
+  `,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Сохранить',c:'acc',o:'saveMyProfile()'},
+  ]);
+}
+
+async function saveMyProfile(){
+  const pass = document.getElementById('mp-pass')?.value;
+  const name = document.getElementById('mp-name')?.value.trim();
+  if(!S.me?.id){ toast('ID аккаунта неизвестен — войди через таблицу', 'warn'); closeMo(); return; }
+  const fields = {};
+  if(pass) fields.password_hash = pass;
+  if(name) fields.display_name = name;
+  if(!Object.keys(fields).length){ closeMo(); return; }
+  try{
+    await upd('console_accounts',`id=eq.${S.me.id}`,fields);
+    if(name){ S.me.display_name=name; document.getElementById('profile-name').textContent=name; localStorage.setItem('vmeste_session',JSON.stringify(S.me)); }
+    closeMo(); toast('Профиль обновлён ✓','ok');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+/* ══════════════ NAV ══════════════ */
+const PAGE_TITLES = {overview:'Сводка',users:'Пользователи',sources:'Источники',promos:'Промокоды',pricing:'Цены',broadcast:'Рассылка',contacts:'Контакты',admins:'Аккаунты',settings:'Настройки',database:'База данных'};
+function go(page,arg){
+  S.page=page; S.pageArg=arg;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
+  document.getElementById('page-title').textContent = PAGE_TITLES[page]||page;
+  ({overview,users,sources,promos,pricing,broadcast,contacts,admins,settings,database,userProfile}[page]||(() => set('<div class="empty">404</div>')))(arg);
+}
+function refreshCurrent(){ go(S.page, S.pageArg); }
+function set(html){ document.getElementById('content').innerHTML = html; }
+
+/* ══════════════ OVERVIEW ══════════════ */
+async function overview(){
+  set(spinner());
+  try{
+    const [usrs, stats, promoRows, sources, pending, cardLogs] = await Promise.all([
+      sel('users','select=tg_id,is_premium,reminder_enabled,last_active_at'),
+      sel('bot_stats','select=*'),
+      sel('promo_codes','select=code,used_count,is_free'),
+      sel('user_sources','select=first_source'),
+      sel('pending_users','select=tg_id,nudge_count').catch(()=>[]),
+      sel('card_logs','select=style,created_at&order=created_at.desc&limit=2000').catch(()=>[]),
+    ]);
+    const sm = Object.fromEntries((stats||[]).map(r=>[r.key,r.value]));
+    const premium = usrs.filter(u=>u.is_premium).length;
+    const reminders = usrs.filter(u=>u.reminder_enabled).length;
+    const promoUses = promoRows.reduce((s,p)=>s+Number(p.used_count||0),0);
+    const convRate = usrs.length?((premium/usrs.length)*100).toFixed(1):0;
+    const week=new Date(); week.setDate(week.getDate()-7);
+    const active7 = usrs.filter(u=>u.last_active_at&&new Date(u.last_active_at)>week).length;
+    const day=new Date(); day.setDate(day.getDate()-1);
+    const active24 = usrs.filter(u=>u.last_active_at&&new Date(u.last_active_at)>day).length;
+    const pendingCount = (pending||[]).length;
+    const nudgedCount = (pending||[]).filter(p=>p.nudge_count>0).length;
+
+    // source top
+    const srcMap=new Map();
+    for(const r of sources){ const s=r.first_source||'direct'; srcMap.set(s,(srcMap.get(s)||0)+1); }
+    const topSrc = [...srcMap.entries()].sort((a,b)=>b[1]-a[1]).slice(0,5);
+
+    // retention dots (7 days bucketed)
+    const dayBuckets=Array(7).fill(0);
+    usrs.forEach(u=>{ if(!u.last_active_at) return; const d=Math.floor((Date.now()-new Date(u.last_active_at))/864e5); if(d<7) dayBuckets[d]++; });
+    const maxB=Math.max(...dayBuckets,1);
+    const dots = dayBuckets.map(n=>{const lvl=Math.ceil((n/maxB)*4);return `<span class="act-dot d${lvl}" title="${n} польз."></span>`;}).join('');
+
+    // card logs — by style
+    const styleMap={};
+    for(const l of (cardLogs||[])){ const s=l.style||'dark'; styleMap[s]=(styleMap[s]||0)+1; }
+    const styleTotal = Object.values(styleMap).reduce((a,b)=>a+b,0)||1;
+    const stylePairs = Object.entries(styleMap).sort((a,b)=>b[1]-a[1]);
+
+    // card logs — last 7 days daily
+    const cardDaily={}; const now=Date.now();
+    for(const l of (cardLogs||[])){
+      try{ const d=Math.floor((now-new Date(l.created_at))/864e5); if(d<7){ const k=d; cardDaily[k]=(cardDaily[k]||0)+1; } }catch{}
+    }
+    const cardDots = Array(7).fill(0).map((_,i)=>cardDaily[i]||0);
+    const maxC=Math.max(...cardDots,1);
+    const cardDotHtml = cardDots.map(n=>{const lvl=Math.ceil((n/maxC)*4);return `<span class="act-dot d${lvl}" title="${n} карточек"></span>`;}).join('');
+
+    set(`
+      <div class="section-head" style="margin-bottom:16px"><h2>Сводка</h2></div>
+
+      <!-- Блок: Пользователи -->
+      <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">◈ Пользователи</div>
+      <div class="g4" style="margin-bottom:20px">
+        ${sc('Всего',usrs.length,'Зарегистрировано','')}
+        ${sc('Премиум',premium,`Конверсия ${convRate}%`,'pink')}
+        ${sc('Активны сегодня',active24,'За последние 24 ч','ok')}
+        ${sc('Активны (7д)',active7,'Уникальных за неделю','blue')}
+      </div>
+
+      <!-- Блок: Pending -->
+      <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">⏳ Незавершённые регистрации</div>
+      <div class="g4" style="margin-bottom:20px">
+        ${sc('Не завершили флоу',pendingCount,'Нажали /start, но не дошли до конца','warn')}
+        ${sc('Уже получили нудж',nudgedCount,'Из числа pending','purple')}
+        ${sc('Карточек сегодня',cardDots[0]||0,'Сгенерировано за 24 ч','')}
+        ${sc('Карточек (7д)',cardDots.reduce((a,b)=>a+b,0),'За неделю','blue')}
+      </div>
+
+      <!-- Блок: Монетизация и функции -->
+      <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">✦ Монетизация и функции</div>
+      <div class="g4" style="margin-bottom:20px">
+        ${sc('Карточки (всего)',sm.total_cards_generated||0,'За всё время','')}
+        ${sc('Напоминания',reminders,'Включено','purple')}
+        ${sc('Промо-активаций',promoUses,'Всего использований','')}
+        ${sc('Напоминаний отправлено',sm.total_reminders_sent||0,'С момента запуска','')}
+      </div>
+
+      <!-- Блок: Графики -->
+      <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">◉ Аналитика</div>
+      <div class="g2">
+        <div>
+          <div class="card">
+            <div class="card-title"><div class="dot pink"></div>Конверсия в премиум</div>
+            <div style="display:flex;align-items:center;gap:10px;margin-bottom:8px">
+              <div style="flex:1;height:10px;background:var(--bg4);border-radius:5px;overflow:hidden">
+                <div style="width:${convRate}%;height:100%;background:linear-gradient(90deg,var(--acc),var(--acc2));border-radius:5px;transition:width .4s"></div>
+              </div>
+              <span style="font-family:'Syne',sans-serif;font-weight:800;font-size:16px;color:var(--acc)">${convRate}%</span>
+            </div>
+            <div style="font-size:11px;color:var(--txt3)">${premium} из ${usrs.length} пользователей оплатили премиум</div>
+            <hr class="divider">
+            <div class="card-title" style="margin-bottom:8px"><div class="dot ok"></div>Активность пользователей — 7 дней</div>
+            <div style="display:flex;gap:3px;align-items:flex-end;margin-bottom:4px">${dots}</div>
+            <div style="font-size:10px;color:var(--txt3)">Сегодня → 7 дней назад</div>
+          </div>
+          <div class="card">
+            <div class="card-title"><div class="dot pur"></div>Генерация карточек — 7 дней</div>
+            <div style="display:flex;gap:3px;align-items:flex-end;margin-bottom:4px">${cardDotHtml}</div>
+            <div style="font-size:10px;color:var(--txt3);margin-bottom:12px">Сегодня → 7 дней назад</div>
+            <div class="card-title" style="margin-bottom:8px"><div class="dot"></div>Популярность стилей</div>
+            ${stylePairs.map(([s,n])=>`
+              <div class="src-bar">
+                <div class="src-name">${esc(s)}</div>
+                <div class="src-fill" style="width:${Math.max(4,(n/styleTotal)*100)}%"></div>
+                <div class="src-count">${n}</div>
+              </div>
+            `).join('')||'<div class="empty" style="font-size:11px">Нет данных (нужна таблица card_logs)</div>'}
+          </div>
+        </div>
+        <div>
+          <div class="card">
+            <div class="card-title"><div class="dot pur"></div>Топ источников</div>
+            ${topSrc.map(([s,n])=>`
+              <div class="src-bar">
+                <div class="src-name">${esc(s)}</div>
+                <div class="src-fill" style="width:${Math.max(4,(n/topSrc[0][1])*100)}%"></div>
+                <div class="src-count">${n}</div>
+              </div>
+            `).join('')||'<div class="empty">Нет данных</div>'}
+          </div>
+          <div class="card">
+            <div class="card-title"><div class="dot"></div>Промокоды — топ по использованию</div>
+            ${promoRows.slice(0,5).map(p=>`
+              <div class="ie-row">
+                <span class="ie-key"><code>${esc(p.code)}</code> <span class="badge ${p.is_free?'bg':'bpk'}" style="font-size:9px">${p.is_free?'free':'%'}</span></span>
+                <span style="font-size:11px;color:var(--txt3)">${p.used_count||0} исп.</span>
+              </div>
+            `).join('')||'<div class="empty">Промокодов нет</div>'}
+          </div>
+          <div class="card">
+            <div class="card-title"><div class="dot warn" style="background:var(--warn)"></div>Pending-пользователи</div>
+            <div style="font-size:12px;color:var(--txt2);margin-bottom:10px">
+              Нажали /start, но не завершили регистрацию.<br>
+              <span style="color:var(--txt3);font-size:11px">Бот автоматически отправит им напоминание через 24 ч.</span>
+            </div>
+            <button class="btn warn" onclick="go('broadcast')">📣 Написать им вручную</button>
+          </div>
+        </div>
+      </div>
+    `);
+  }catch(e){ set(errBox(e)); }
+}
+
+/* ══════════════ USERS (list) ══════════════ */
+let _usersData=[], _usersSort={col:'tg_id',dir:'asc'};
+const STYLE_NAMES={dark:'Тёмный',pink:'Розовый',night:'Ночной',forest:'Лесной',sunset:'Закат',snow:'Снежный'};
+function styleRu(s){ return STYLE_NAMES[s]||s||'dark'; }
+
+async function users(){
+  set(spinner());
+  try{
+    const [rows, cardLogs] = await Promise.all([
+      sel('users','select=*&order=tg_id.asc&limit=500'),
+      sel('card_logs','select=tg_id,style').catch(()=>[]),
+    ]);
+    const cardCounts={};
+    const lastStyles={};
+    for(const l of (cardLogs||[])){
+      cardCounts[l.tg_id]=(cardCounts[l.tg_id]||0)+1;
+      if(!lastStyles[l.tg_id]) lastStyles[l.tg_id]=l.style;
+    }
+    for(const u of rows){
+      u._cardCount=cardCounts[u.tg_id]||0;
+    }
+    _usersData = rows;
+    _cardCountsMap = cardCounts;
+    _cardLastStyles = lastStyles;
+    renderUsersPage();
+  }catch(e){ set(errBox(e)); }
+}
+let _cardCountsMap={}, _cardLastStyles={};
+
+function renderUsersPage(){
+  const prevSearch = document.getElementById('u-search')?.value ?? '';
+  const prevPrem = document.getElementById('u-premium')?.value ?? '';
+  const prevRem = document.getElementById('u-reminder')?.value ?? '';
+  const rows = getSortedFilteredUsers();
+  const {col,dir} = _usersSort;
+  const sh=(c,label)=>`<th class="sortable${col===c?' sort-'+dir:''}" onclick="sortUsers('${c}')">${label}</th>`;
+  set(`
+    <div class="section-head">
+      <h2>Пользователи <span style="color:var(--txt3);font-size:13px;font-weight:400">(${_usersData.length})</span></h2>
+    </div>
+    <div class="filter-row">
+      <input class="filter-input" id="u-search" placeholder="Поиск по ID или имени…" style="width:220px" value="${esc(prevSearch)}" oninput="renderUsersPage()">
+      <select class="filter-input" id="u-premium" onchange="renderUsersPage()">
+        <option value="" ${prevPrem===''?'selected':''}>Все</option>
+        <option value="1" ${prevPrem==='1'?'selected':''}>Только премиум</option>
+        <option value="0" ${prevPrem==='0'?'selected':''}>Без премиума</option>
+      </select>
+      <select class="filter-input" id="u-reminder" onchange="renderUsersPage()">
+        <option value="" ${prevRem===''?'selected':''}>Все напоминания</option>
+        <option value="1" ${prevRem==='1'?'selected':''}>Напомин. вкл</option>
+        <option value="0" ${prevRem==='0'?'selected':''}>Напомин. выкл</option>
+      </select>
+      <span style="font-size:11px;color:var(--txt3)">Показано: ${rows.length}</span>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="tw">
+        <table>
+          <thead><tr>
+            ${sh('tg_id','TG ID')}
+            ${sh('my_name','Имя')}
+            <th>Username</th>
+            ${sh('partner_name','Партнёр')}
+            ${sh('start_date','Дата начала')}
+            <th>Стиль</th>
+            ${sh('is_premium','Премиум')}
+            <th>Карточек</th>
+            ${sh('reminder_enabled','Напом.')}
+            ${sh('created_at','Зарегистрирован')}
+            ${sh('last_active_at','Последняя активность')}
+          </tr></thead>
+          <tbody>
+            ${rows.length ? rows.map(u=>{
+              const cc=u._cardCount||0;
+              const ls=_cardLastStyles[u.tg_id];
+              return `
+              <tr style="cursor:pointer" onclick="go('userProfile',${u.tg_id})">
+                <td><code>${u.tg_id}</code></td>
+                <td>${esc(u.my_name||'')}</td>
+                <td style="color:var(--txt3);font-size:11px">${u.username?'@'+esc(u.username):'—'}</td>
+                <td>${esc(u.partner_name||'')}</td>
+                <td>${u.start_date||'—'}</td>
+                <td><span class="badge bpur">${esc(styleRu(u.card_style||'dark'))}</span></td>
+                <td>${u.is_premium?'<span class="badge bg">✓ да</span>':'<span class="badge">нет</span>'}</td>
+                <td><span style="color:${cc>0?'var(--txt)':'var(--txt3)'};font-weight:${cc>0?'600':'400'}">${cc}</span></td>
+                <td>${u.reminder_enabled?'<span class="badge bb">вкл</span>':'<span class="badge">выкл</span>'}</td>
+                <td style="color:var(--txt3)">${fd(u.created_at)}</td>
+                <td style="color:var(--txt3)">${fd(u.last_active_at)}</td>
+              </tr>`;
+            }).join('') : '<tr><td colspan="11"><div class="empty">Ничего не найдено</div></td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `);
+}
+
+function getSortedFilteredUsers(){
+  const q = (document.getElementById('u-search')?.value||'').toLowerCase();
+  const prem = document.getElementById('u-premium')?.value||'';
+  const rem  = document.getElementById('u-reminder')?.value||'';
+  let rows = _usersData.filter(u=>{
+    if(q && !String(u.tg_id).includes(q) && !(u.my_name||'').toLowerCase().includes(q) && !(u.partner_name||'').toLowerCase().includes(q)) return false;
+    if(prem==='1' && !u.is_premium) return false;
+    if(prem==='0' && u.is_premium) return false;
+    if(rem==='1' && !u.reminder_enabled) return false;
+    if(rem==='0' && u.reminder_enabled) return false;
+    return true;
+  });
+  const {col,dir} = _usersSort;
+  rows.sort((a,b)=>{
+    let va=a[col]??'', vb=b[col]??'';
+    if(typeof va==='boolean') va=va?1:0, vb=vb?1:0;
+    const cmp = String(va).localeCompare(String(vb), undefined, {numeric:true});
+    return dir==='asc'?cmp:-cmp;
+  });
+  return rows;
+}
+
+function sortUsers(col){
+  if(_usersSort.col===col) _usersSort.dir = _usersSort.dir==='asc'?'desc':'asc';
+  else { _usersSort.col=col; _usersSort.dir='asc'; }
+  renderUsersPage();
+}
+
+/* ══════════════ USER PROFILE ══════════════ */
+async function userProfile(tg_id){
+  set(spinner());
+  try{
+    // refresh from db or use cache
+    let u = _usersData.find(r=>r.tg_id==tg_id);
+    if(!u){
+      const rows = await sel('users',`select=*&tg_id=eq.${tg_id}&limit=1`);
+      if(!rows.length){ set('<div class="empty">Пользователь не найден</div>'); return; }
+      u = rows[0]; _usersData.push(u);
+    }
+    renderUserProfilePage(u);
+    // Подгружаем историю карточек асинхронно
+    loadCardHistory(tg_id);
+  }catch(e){ set(errBox(e)); }
+}
+
+async function loadCardHistory(tg_id){
+  try{
+    const logs = await sel('card_logs',`select=style,created_at&tg_id=eq.${tg_id}&order=created_at.desc&limit=50`);
+    const block=document.getElementById('card-history-block');
+    const body=document.getElementById('card-history-body');
+    const cnt=document.getElementById('card-history-count');
+    if(!block||!body) return;
+    if(cnt) cnt.textContent=`(${logs.length})`;
+    if(!logs.length){ body.innerHTML='<div class="empty">Карточки ещё не генерировались</div>'; return; }
+    const byStyle={};
+    for(const l of logs){ byStyle[l.style]=(byStyle[l.style]||0)+1; }
+    const styleBar=Object.entries(byStyle).sort((a,b)=>b[1]-a[1]).map(([s,n])=>`
+      <span class="badge bpur" style="margin:0 2px">${esc(styleRu(s))} <strong>${n}</strong></span>
+    `).join('');
+    body.innerHTML=`
+      <div style="margin-bottom:10px;display:flex;flex-wrap:wrap;gap:4px">${styleBar}</div>
+      <div class="tw"><table class="mini-table">
+        <thead><tr><th>#</th><th>Стиль</th><th>Дата и время</th></tr></thead>
+        <tbody>${logs.map((l,i)=>`<tr>
+          <td style="color:var(--txt3)">${i+1}</td>
+          <td><span class="badge bpur">${esc(styleRu(l.style))}</span></td>
+          <td>${fd(l.created_at)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    `;
+  }catch(e){
+    const body=document.getElementById('card-history-body');
+    if(body) body.innerHTML='<div class="empty" style="color:var(--txt3)">Нет данных (нужна таблица card_logs)</div>';
+  }
+}
+
+function renderUserProfilePage(u){
+  const fields = [
+    {key:'my_name',      label:'Своё имя',         val:u.my_name||''},
+    {key:'partner_name', label:'Имя партнёра',      val:u.partner_name||''},
+    {key:'start_date',   label:'Дата начала',       val:u.start_date||'',    type:'date'},
+    {key:'card_style',   label:'Стиль карточки',    val:u.card_style||'dark',type:'select',
+      opts:['dark','pink','night','forest','sunset','snow'],
+      optLabels:{dark:'Тёмный',pink:'Розовый',night:'Ночной',forest:'Лесной',sunset:'Закат',snow:'Снежный'}},
+  ];
+  const boolFields = [
+    {key:'is_premium',       label:'Премиум',      val:u.is_premium},
+    {key:'reminder_enabled', label:'Напоминания',  val:u.reminder_enabled},
+  ];
+
+  set(`
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <button class="btn" onclick="go('users')">← Назад</button>
+      <h2 style="font-family:'Syne',sans-serif;font-weight:800">Профиль пользователя</h2>
+    </div>
+
+    <!-- Hero header -->
+    <div style="background:linear-gradient(135deg,rgba(244,114,154,.08),rgba(123,108,255,.06));border:1px solid var(--bd);border-radius:14px;padding:24px;margin-bottom:16px;display:flex;align-items:flex-start;gap:20px">
+      <div style="width:64px;height:64px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:26px;font-family:'Syne',sans-serif;font-weight:800;color:#fff;flex-shrink:0">
+        ${(u.my_name||String(u.tg_id)).charAt(0).toUpperCase()}
+      </div>
+      <div style="flex:1;min-width:0">
+        <div style="font-family:'Syne',sans-serif;font-weight:800;font-size:22px;line-height:1.2;margin-bottom:4px">
+          ${esc(u.my_name||'Без имени')}
+          <span style="color:var(--txt3);font-size:15px;font-weight:400;margin:0 6px">&</span>
+          ${esc(u.partner_name||'—')}
+        </div>
+        <div style="display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin-top:8px">
+          <span style="font-size:11px;color:var(--txt3)"><code style="font-size:10px">${u.tg_id}</code></span>
+          ${u.username ? `<span style="font-size:11px;color:var(--txt2)">@${esc(u.username)}</span>` : ''}
+          ${u.is_premium ? '<span class="badge bpk">✦ Премиум</span>' : '<span class="badge">Без премиума</span>'}
+          ${u.reminder_enabled ? '<span class="badge bb">🔔 Напоминания</span>' : ''}
+          <span class="badge bpur">${esc(styleRu(u.card_style||'dark'))}</span>
+        </div>
+        <div style="margin-top:10px;display:flex;gap:16px;flex-wrap:wrap">
+          <div style="font-size:11px;color:var(--txt3)">Дата начала: <span style="color:var(--txt2)">${u.start_date||'—'}</span></div>
+          <div style="font-size:11px;color:var(--txt3)">Активность: <span style="color:var(--txt2)">${fd(u.last_active_at)}</span></div>
+        </div>
+      </div>
+    </div>
+
+    <div class="g2">
+      <div class="card">
+        <div class="card-title"><div class="dot"></div>Данные профиля</div>
+        <div class="kv">
+          ${fields.map(f=>`
+            <div class="kvi">
+              <div class="kvk">${f.label}</div>
+              <div class="kvv">${esc(f.val)||'—'}</div>
+              <button class="kv-edit-btn" onclick="openFieldEdit(${u.tg_id},'${f.key}','${esc(f.val)}','${f.type||'text'}','${(f.opts||[]).join(',')}','${Object.entries(f.optLabels||{}).map(([k,v])=>k+':'+v).join(',')}')">✎</button>
+            </div>
+          `).join('')}
+        </div>
+        <hr class="divider">
+        <div class="card-title" style="margin-bottom:8px"><div class="dot pur"></div>Переключатели</div>
+        ${boolFields.map(f=>`
+          <div class="ie-row">
+            <span class="ie-key">${f.label}</span>
+            <div style="display:flex;align-items:center;gap:8px">
+              <span class="${f.val?'badge bg':'badge'}">${f.val?'вкл':'выкл'}</span>
+              <button class="btn sm ${f.val?'dan':'suc'}" onclick="confirmToggleUserBool(${u.tg_id},'${f.key}',${!f.val},'${esc(f.label)}')">
+                ${f.val?'Выключить':'Включить'}
+              </button>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="dot ok"></div>Системные данные</div>
+        <div class="kv">
+          <div class="kvi"><div class="kvk">TG ID</div><div class="kvv">${u.tg_id}</div></div>
+          <div class="kvi"><div class="kvk">TG Username</div><div class="kvv">${u.username?'@'+esc(u.username):'—'}</div></div>
+          <div class="kvi"><div class="kvk">Стиль карточки</div><div class="kvv"><span class="badge bpur">${esc(styleRu(u.card_style||'dark'))}</span></div></div>
+          <div class="kvi"><div class="kvk">Зарегистрирован</div><div class="kvv" style="font-size:11px">${fd(u.created_at)||u.start_date||'—'}</div></div>
+          <div class="kvi"><div class="kvk">Последняя активность</div><div class="kvv" style="font-size:11px">${fd(u.last_active_at)||'—'}</div></div>
+        </div>
+        <hr class="divider">
+        <div style="font-size:11px;color:var(--txt3);line-height:1.8">
+          Все изменения применяются немедленно в базе данных.<br>
+          Бот подтянет новые данные при следующем запросе пользователя.
+        </div>
+      </div>
+    </div>
+    <div class="card" id="card-history-block">
+      <div class="card-title"><div class="dot pink"></div>История карточек <span id="card-history-count" style="color:var(--txt3);font-weight:400;font-size:11px"></span></div>
+      <div id="card-history-body"><span class="spin"></span></div>
+    </div>
+  `);
+}
+
+function openFieldEdit(tg_id, key, val, type, optsStr, optLabelsStr){
+  const opts = optsStr ? optsStr.split(',').filter(Boolean) : [];
+  const optLabels = optLabelsStr ? Object.fromEntries(optLabelsStr.split(',').filter(Boolean).map(p=>{const [k,v]=p.split(':');return[k,v||k];})) : {};
+  let inputHtml;
+  if(type==='select' && opts.length){
+    inputHtml = `<select id="fe-val" class="filter-input" style="width:100%">${opts.map(o=>`<option value="${esc(o)}" ${o===val?'selected':''}>${esc(optLabels[o]||o)}</option>`).join('')}</select>`;
+  } else if(type==='date'){
+    inputHtml = `<input id="fe-val" type="date" class="filter-input" style="width:100%" value="${esc(val)}">`;
+  } else {
+    inputHtml = `<input id="fe-val" class="filter-input" style="width:100%" value="${esc(val)}" placeholder="Новое значение">`;
+  }
+  openMo('Изменить: '+key,`
+    <div class="field"><label>${key}</label>${inputHtml}</div>
+    <div style="font-size:11px;color:var(--txt3);margin-top:-6px">Оставь пустым для null</div>
+  `,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Сохранить',c:'acc',o:`doFieldEdit(${tg_id},'${key}')`},
+  ]);
+}
+
+async function doFieldEdit(tg_id, key){
+  const val = document.getElementById('fe-val')?.value.trim();
+  const data = {[key]: val===''?null:val};
+  try{
+    await upd('users',`tg_id=eq.${tg_id}`,data);
+    closeMo();
+    toast(`${key} обновлён ✓`,'ok');
+    // обновляем кэш
+    const idx = _usersData.findIndex(u=>u.tg_id==tg_id);
+    if(idx!==-1) _usersData[idx][key] = val===''?null:val;
+    renderUserProfilePage(_usersData[idx]||{tg_id});
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function toggleUserBool(tg_id, key, val){
+  try{
+    await upd('users',`tg_id=eq.${tg_id}`,{[key]:val});
+    toast(`${key} → ${val?'вкл':'выкл'}`,'ok');
+    const idx=_usersData.findIndex(u=>u.tg_id==tg_id);
+    if(idx!==-1){ _usersData[idx][key]=val; renderUserProfilePage(_usersData[idx]); }
+  }catch(e){ toast(e.message,'err'); }
+}
+
+function confirmToggleUserBool(tg_id, key, val, label){
+  const u = _usersData.find(r=>r.tg_id==tg_id);
+  const name = u?.my_name||String(tg_id);
+  const descMap = {
+    'is_premium': val
+      ? `Выдать <strong>${esc(name)}</strong> доступ к 5 стилям карточки и напоминаниям.`
+      : `Забрать у <strong>${esc(name)}</strong> доступ к платным стилям и напоминаниям.`,
+    'reminder_enabled': val
+      ? `Включить ежедневные напоминания для <strong>${esc(name)}</strong>.`
+      : `Отключить ежедневные напоминания для <strong>${esc(name)}</strong>.`,
+  };
+  const desc = descMap[key] || `${val?'Включить':'Выключить'} <strong>${esc(label)}</strong> для <strong>${esc(name)}</strong>.`;
+  openMo(`${val?'Включить':'Выключить'}: ${esc(label)}`,`
+    <div style="color:var(--txt2);line-height:1.7">${desc}</div>
+  `,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:val?'Включить':'Выключить',c:val?'suc':'dan',o:`toggleUserBool(${tg_id},'${key}',${val})`},
+  ]);
+}
+
+function confirmTogglePremium(tg_id, give){
+  const u = _usersData.find(r=>r.tg_id==tg_id);
+  const name = u?.my_name||String(tg_id);
+  openMo(give?'Выдать премиум':'Снять премиум',`
+    <div style="color:var(--txt2);line-height:1.7">
+      ${give
+        ? `Выдать премиум пользователю <strong>${esc(name)}</strong> (${tg_id})?<br><span style="color:var(--txt3);font-size:11px">Пользователь получит доступ к 5 дополнительным стилям карточки и напоминаниям.</span>`
+        : `Снять премиум с пользователя <strong>${esc(name)}</strong> (${tg_id})?<br><span style="color:var(--txt3);font-size:11px">Пользователь потеряет доступ к платным стилям и напоминаниям.</span>`
+      }
+    </div>
+  `,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:give?'Выдать':'Снять',c:give?'suc':'dan',o:`doTogglePremium(${tg_id},${give})`},
+  ]);
+}
+
+async function doTogglePremium(tg_id, val){
+  try{
+    await upd('users',`tg_id=eq.${tg_id}`,{is_premium:val});
+    closeMo();
+    toast(val?'Премиум выдан ✓':'Премиум снят','val'?'ok':'warn');
+    const idx=_usersData.findIndex(u=>u.tg_id==tg_id);
+    if(idx!==-1){ _usersData[idx].is_premium=val; renderUserProfilePage(_usersData[idx]); }
+  }catch(e){ toast(e.message,'err'); }
+}
+
+/* ══════════════ SOURCES ══════════════ */
+async function sources(){
+  set(spinner());
+  try{
+    const rows = await sel('user_sources','select=*');
+    const totals=new Map();
+    for(const r of rows){ const s=r.first_source||'direct'; totals.set(s,(totals.get(s)||0)+1); }
+    const sorted=[...totals.entries()].map(([source,users])=>({source,users})).sort((a,b)=>b.users-a.users);
+    const max=sorted[0]?.users||1;
+    set(`
+      <div class="section-head"><h2>Источники регистраций</h2></div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-title"><div class="dot"></div>Топ источников</div>
+          ${sorted.slice(0,15).map(r=>`
+            <div class="src-bar">
+              <div class="src-name">${esc(r.source)}</div>
+              <div class="src-fill" style="width:${Math.max(4,(r.users/max)*100)}%"></div>
+              <div class="src-count">${r.users}</div>
+            </div>
+          `).join('')||'<div class="empty">Нет данных</div>'}
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="dot pur"></div>UTM-ссылки</div>
+          ${sorted.slice(0,10).map(r=>`
+            <div class="ie-row">
+              <code style="font-size:10px">?start=${esc(r.source)}</code>
+              <button class="btn sm" onclick="copyText('https://t.me/TogetherDayBot?start=${esc(r.source)}')">Копировать</button>
+            </div>
+          `).join('')||'<div class="empty">Нет данных</div>'}
+        </div>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="dot"></div>Все источники</div>
+        <div class="tw">
+          <table><thead><tr><th>Источник</th><th>Пользователей</th><th>UTM-ссылка</th></tr></thead>
+          <tbody>${sorted.map(r=>`<tr>
+            <td><code>${esc(r.source)}</code></td><td>${r.users}</td>
+            <td><code style="font-size:10px;color:var(--txt3)">https://t.me/TogetherDayBot?start=${esc(r.source)}</code></td>
+          </tr>`).join('')}</tbody></table>
+        </div>
+      </div>
+    `);
+  }catch(e){ set(errBox(e)); }
+}
+
+/* ══════════════ PROMOS ══════════════ */
+let _promosData=[], _promosSort={col:'status_order',dir:'asc'};
+async function promos(){
+  set(spinner());
+  try{
+    const [rows, uses] = await Promise.all([
+      sel('promo_codes','select=*&order=used_count.desc'),
+      sel('promo_uses','select=*&order=used_at.desc&limit=500'),
+    ]);
+    _promosData = rows;
+    _promosUses = uses||[];
+    renderPromosPage(uses);
+  }catch(e){ set(errBox(e)); }
+}
+
+function getPromoStatus(p){
+  if(p.expires_at && new Date(p.expires_at)<new Date()) return 'expired';
+  if(p.max_uses && p.used_count>=p.max_uses) return 'limit';
+  return 'active';
+}
+
+function renderPromosPage(uses){
+  if(!uses) uses = _promosUses;
+  const prevSearch = document.getElementById('pr-search')?.value ?? '';
+  const prevStatus = document.getElementById('pr-status')?.value ?? '';
+  const prevType = document.getElementById('pr-type')?.value ?? '';
+  const prevUses = document.getElementById('pr-uses')?.value ?? '';
+
+  let rows = _promosData.map(p=>({...p, _status:getPromoStatus(p)}));
+
+  if(prevSearch) rows = rows.filter(p=>p.code.toLowerCase().includes(prevSearch.toLowerCase()));
+  if(prevStatus) rows = rows.filter(p=>p._status===prevStatus);
+  if(prevType==='free') rows = rows.filter(p=>p.is_free);
+  if(prevType==='discount') rows = rows.filter(p=>!p.is_free);
+  if(prevUses==='used') rows = rows.filter(p=>p.used_count>0);
+  if(prevUses==='unused') rows = rows.filter(p=>!p.used_count);
+
+  // Sort: active first by default
+  rows.sort((a,b)=>{
+    const order = {active:0,limit:1,expired:2};
+    return (order[a._status]??3)-(order[b._status]??3);
+  });
+
+  // Uses data grouped by code
+  const usesMap = {};
+  if(uses){
+    for(const u of uses){
+      if(!usesMap[u.code]) usesMap[u.code]=[];
+      usesMap[u.code].push(u);
+    }
+  }
+
+  set(`
+    <div class="section-head">
+      <h2>Промокоды</h2>
+      <button class="btn acc" onclick="openCreatePromo()">+ Создать промокод</button>
+    </div>
+    <div class="filter-row">
+      <input class="filter-input" id="pr-search" placeholder="Поиск по коду…" style="width:180px" value="${esc(prevSearch)}" oninput="renderPromosPage()">
+      <select class="filter-input" id="pr-status" onchange="renderPromosPage()">
+        <option value="" ${prevStatus===''?'selected':''}>Все статусы</option>
+        <option value="active" ${prevStatus==='active'?'selected':''}>Активные</option>
+        <option value="expired" ${prevStatus==='expired'?'selected':''}>Истёкшие</option>
+        <option value="limit" ${prevStatus==='limit'?'selected':''}>Лимит исчерпан</option>
+      </select>
+      <select class="filter-input" id="pr-type" onchange="renderPromosPage()">
+        <option value="" ${prevType===''?'selected':''}>Все типы</option>
+        <option value="free" ${prevType==='free'?'selected':''}>Free premium</option>
+        <option value="discount" ${prevType==='discount'?'selected':''}>Скидка</option>
+      </select>
+      <select class="filter-input" id="pr-uses" onchange="renderPromosPage()">
+        <option value="" ${prevUses===''?'selected':''}>Все использования</option>
+        <option value="used" ${prevUses==='used'?'selected':''}>Использовались</option>
+        <option value="unused" ${prevUses==='unused'?'selected':''}>Не использовались</option>
+      </select>
+      <span style="font-size:11px;color:var(--txt3)">Показано: ${rows.length}</span>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="tw">
+        <table>
+          <thead><tr><th>Код</th><th>Тип</th><th>Скидка</th><th>Использовано</th><th>Лимит</th><th>Активен до</th><th>Статус</th><th></th></tr></thead>
+          <tbody>${rows.length?rows.map(renderPromoRow).join(''):'<tr><td colspan="8"><div class="empty">Промокодов нет. Создай первый!</div></td></tr>'}</tbody>
+        </table>
+      </div>
+    </div>
+
+    ${(uses && uses.length) ? `
+    <div style="margin-top:20px">
+      <div class="section-head"><h2 style="font-size:14px">История использований <span style="color:var(--txt3);font-size:12px;font-weight:400">(${uses.length})</span></h2></div>
+      <div class="card" style="padding:0">
+        <div class="tw">
+          <table>
+            <thead><tr><th>Дата</th><th>Промокод</th><th>TG ID</th></tr></thead>
+            <tbody>${uses.slice(0,200).map(u=>`<tr>
+              <td style="color:var(--txt3)">${fd(u.used_at)}</td>
+              <td><code>${esc(u.code)}</code></td>
+              <td><code>${u.tg_id}</code></td>
+            </tr>`).join('')}</tbody>
+          </table>
+        </div>
+      </div>
+    </div>` : ''}
+  `);
+}
+
+// Store uses for re-render without re-fetch
+let _promosUses = [];
+
+function renderPromoRow(p){
+  const status = p._status || getPromoStatus(p);
+  const sb = {active:'<span class="badge bg">активен</span>',expired:'<span class="badge br">истёк</span>',limit:'<span class="badge bw">лимит</span>'}[status];
+  return `<tr>
+    <td><code>${esc(p.code)}</code></td>
+    <td>${p.is_free?'<span class="badge bg">free premium</span>':'<span class="badge bpk">скидка</span>'}</td>
+    <td>${p.is_free?'—':(p.discount||0)+'%'}</td>
+    <td>${p.used_count||0}</td>
+    <td>${p.max_uses||'∞'}</td>
+    <td>${p.expires_at||'без даты'}</td>
+    <td>${sb}</td>
+    <td><div class="td-act">
+      <button class="btn sm" onclick="openEditPromo('${esc(p.code)}')">✎</button>
+      <button class="btn sm dan" onclick="confirmDeletePromo('${esc(p.code)}')">✕</button>
+    </div></td>
+  </tr>`;
+}
+
+function openCreatePromo(){
+  openMo('Создать промокод',promoFormHtml(),[{l:'Отмена',c:'',o:'closeMo()'},{l:'Создать',c:'acc',o:'doCreatePromo()'}]);
+  setTimeout(togglePromoKind,10);
+}
+function openEditPromo(code){
+  const p=_promosData.find(r=>r.code===code); if(!p) return;
+  openMo('Редактировать промокод',promoFormHtml(p),[{l:'Отмена',c:'',o:'closeMo()'},{l:'Сохранить',c:'acc',o:'doCreatePromo(true)'}]);
+  setTimeout(togglePromoKind,10);
+}
+function promoFormHtml(p){
+  return `
+    <div class="g2">
+      <div class="field"><label>Код</label>
+        <input id="pf-code" value="${esc(p?.code||'')}" placeholder="LOVE50" ${p?'readonly':''} style="${p?'opacity:.5':''}" oninput="this.value=this.value.toUpperCase()">
+      </div>
+      <div class="field"><label>Тип</label>
+        <select id="pf-kind" onchange="togglePromoKind()">
+          <option value="discount" ${!p?.is_free?'selected':''}>Скидка %</option>
+          <option value="free" ${p?.is_free?'selected':''}>Бесплатный премиум</option>
+        </select>
+      </div>
+    </div>
+    <div id="pf-discount-row" class="field"><label>Размер скидки, %</label>
+      <input id="pf-discount" type="number" min="1" max="99" value="${p?.discount||50}">
+    </div>
+    <div class="g2">
+      <div class="field"><label>Лимит использований</label>
+        <input id="pf-maxuses" type="number" min="1" value="${p?.max_uses||''}" placeholder="∞ (без лимита)">
+      </div>
+      <div class="field"><label>Активен до</label>
+        <input id="pf-expires" type="date" value="${p?.expires_at||''}">
+      </div>
+    </div>
+  `;
+}
+function togglePromoKind(){
+  const el=document.getElementById('pf-discount-row');
+  if(el) el.style.display=document.getElementById('pf-kind')?.value==='free'?'none':'';
+}
+async function doCreatePromo(isEdit=false){
+  const code=document.getElementById('pf-code')?.value.trim().toUpperCase();
+  if(!code){ toast('Введи код','err'); return; }
+  const is_free=document.getElementById('pf-kind')?.value==='free';
+  const row={code,is_free,discount:is_free?0:Number(document.getElementById('pf-discount')?.value||0),max_uses:document.getElementById('pf-maxuses')?.value?Number(document.getElementById('pf-maxuses').value):null,expires_at:document.getElementById('pf-expires')?.value||null};
+  try{
+    if(isEdit){ await upd('promo_codes',`code=eq.${encodeURIComponent(code)}`,row); }
+    else{ row.used_count=0; await ins('promo_codes',row); }
+    closeMo(); toast(isEdit?`${code} обновлён ✓`:`${code} создан ✓`,'ok'); promos();
+  }catch(e){ toast(e.message,'err'); }
+}
+function confirmDeletePromo(code){
+  openMo('Удалить промокод?',`<div style="color:var(--txt2)">Промокод <code>${esc(code)}</code> и история его использований будут удалены безвозвратно.</div>`,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Удалить',c:'dan',o:`doDeletePromo('${esc(code)}')`},
+  ]);
+}
+async function doDeletePromo(code){
+  try{
+    await del('promo_codes',`code=eq.${encodeURIComponent(code)}`);
+    closeMo(); toast(`${code} удалён`,'warn'); promos();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+async function openPromoUses(code){
+  openMo(`Использования: ${code}`, '<div style="color:var(--txt3);padding:12px 0;text-align:center"><span class="spin"></span></div>',[{l:'Закрыть',c:'',o:'closeMo()'}]);
+  document.getElementById('mo-box').classList.add('wide');
+  try{
+    const rows = await sel('promo_uses',`select=*&code=eq.${encodeURIComponent(code)}&order=used_at.desc&limit=100`);
+    document.getElementById('mb').innerHTML = rows.length ? `
+      <div style="font-size:11px;color:var(--txt3);margin-bottom:10px">Всего записей: ${rows.length}</div>
+      <div class="tw"><table class="mini-table">
+        <thead><tr><th>#</th><th>TG ID</th><th>Дата использования</th></tr></thead>
+        <tbody>${rows.map((r,i)=>`<tr>
+          <td style="color:var(--txt3)">${i+1}</td>
+          <td><code>${r.tg_id}</code></td>
+          <td>${fd(r.used_at)}</td>
+        </tr>`).join('')}</tbody>
+      </table></div>
+    ` : '<div class="empty">Этот промокод ещё никто не использовал</div>';
+  }catch(e){ document.getElementById('mb').innerHTML = `<div style="color:var(--bad)">${esc(e.message)}</div>`; }
+}
+
+/* ══════════════ PRICING ══════════════ */
+async function pricing(){
+  set(spinner());
+  try{
+    const settings = await sel('settings','select=*');
+    const sm=Object.fromEntries(settings.map(r=>[r.key,r.value]));
+    const price=sm.premium_price||'50';
+    set(`
+      <div class="section-head"><h2>Цены и монетизация</h2></div>
+      <div class="g2">
+        <div class="card">
+          <div class="card-title"><div class="dot pink"></div>Цена премиума</div>
+          <div style="display:flex;align-items:center;gap:12px;margin-bottom:16px">
+            <div style="font-family:'Syne',sans-serif;font-size:42px;font-weight:800;color:var(--acc)">${esc(price)}</div>
+            <div style="color:var(--txt3);font-size:13px">Telegram<br>Stars ⭐</div>
+          </div>
+          <div class="field"><label>Новая цена (Telegram Stars)</label>
+            <input id="new-price" type="number" min="1" value="${esc(price)}" placeholder="50">
+          </div>
+          <button class="btn acc" onclick="savePrice()">Сохранить цену</button>
+          <hr class="divider">
+          <div style="font-size:11px;color:var(--txt3);line-height:1.7">
+            Бот читает цену из <code>settings.premium_price</code> при каждой покупке.<br>
+            Изменение вступает в силу сразу, перезапуск не нужен.
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="dot pur"></div>Все настройки</div>
+          ${settings.length?settings.map(r=>`
+            <div class="ie-row">
+              <span class="ie-key"><code>${esc(r.key)}</code></span>
+              <div style="display:flex;align-items:center;gap:6px">
+                <span class="ie-val">${esc(String(r.value))}</span>
+                <button class="ie-edit" onclick="openEditSetting('${esc(r.key)}','${esc(String(r.value))}')">✎</button>
+              </div>
+            </div>
+          `).join(''):'<div class="empty">Таблица settings пуста</div>'}
+          <div style="margin-top:12px"><button class="btn" onclick="openAddSetting()">+ Добавить настройку</button></div>
+        </div>
+      </div>
+    `);
+  }catch(e){ set(errBox(e)); }
+}
+async function savePrice(){
+  const val=document.getElementById('new-price')?.value.trim();
+  if(!val||isNaN(Number(val))){ toast('Введи корректную цену','err'); return; }
+  try{
+    await api('settings?on_conflict=key',{method:'POST',headers:{Prefer:'resolution=merge-duplicates,return=representation'},body:JSON.stringify({key:'premium_price',value:val})});
+    toast('Цена обновлена: '+val+' ⭐','ok'); pricing();
+  }catch(e){ toast(e.message,'err'); }
+}
+function openEditSetting(key,val){
+  openMo('Изменить настройку',`
+    <div class="field"><label>Ключ</label><input value="${esc(key)}" readonly style="opacity:.5"></div>
+    <div class="field"><label>Значение</label><input id="es-val" value="${esc(val)}"></div>
+  `,[{l:'Отмена',c:'',o:'closeMo()'},{l:'Сохранить',c:'acc',o:`doEditSetting('${esc(key)}')`}]);
+}
+async function doEditSetting(key){
+  const val=document.getElementById('es-val')?.value;
+  try{ await upd('settings',`key=eq.${encodeURIComponent(key)}`,{value:val}); closeMo(); toast('Сохранено ✓','ok'); pricing(); }catch(e){ toast(e.message,'err'); }
+}
+function openAddSetting(){
+  openMo('Добавить настройку',`
+    <div class="field"><label>Ключ</label><input id="as-key" placeholder="my_setting"></div>
+    <div class="field"><label>Значение</label><input id="as-val"></div>
+  `,[{l:'Отмена',c:'',o:'closeMo()'},{l:'Добавить',c:'acc',o:'doAddSetting()'}]);
+}
+async function doAddSetting(){
+  const key=document.getElementById('as-key')?.value.trim();
+  const val=document.getElementById('as-val')?.value.trim();
+  if(!key){ toast('Введи ключ','err'); return; }
+  try{ await ins('settings',{key,value:val}); closeMo(); toast('Добавлено ✓','ok'); pricing(); }catch(e){ toast(e.message,'err'); }
+}
+
+/* ══════════════ CONTACTS (outreach) ══════════════ */
+async function contacts(){
+  set(spinner());
+  try{
+    const [targets, messages] = await Promise.all([
+      sel('outreach_targets','select=*&order=created_at.desc'),
+      sel('outreach_messages','select=sent_at'),
+    ]);
+    const today=new Date().toISOString().slice(0,10);
+    const sentToday=messages.filter(m=>String(m.sent_at||'').slice(0,10)===today).length;
+    const LIMIT=5;
+    set(`
+      <div class="section-head">
+        <h2>Контакты для рассылки</h2>
+        <div style="display:flex;gap:8px">
+          <button class="btn acc" onclick="openAddTarget()">+ Добавить</button>
+          <button class="btn" onclick="loadContactQueue()">Очередь на сегодня</button>
+        </div>
+      </div>
+      <div class="g2" style="margin-bottom:14px">
+        ${sc('Отправлено сегодня',sentToday+'/'+LIMIT,'Дневной лимит','')}
+        ${sc('В очереди',targets.filter(t=>['new','queued'].includes(t.status)).length,'Новых + в очереди','')}
+      </div>
+      <div id="contact-queue" style="margin-bottom:14px"></div>
+      <div class="card" style="padding:0">
+        <div class="tw">
+          <table>
+            <thead><tr><th>#</th><th>Контакт</th><th>Канал</th><th>Тема</th><th>Статус</th><th>Промокод</th><th>Заметка</th><th></th></tr></thead>
+            <tbody>
+              ${targets.length?targets.map(t=>`<tr>
+                <td style="color:var(--txt3)">${t.id}</td>
+                <td>${esc(t.contact)}</td>
+                <td>${esc(t.channel_title||'')}</td>
+                <td>${esc(t.topic||'')}</td>
+                <td>${contactStatusBadge(t.status)}</td>
+                <td>${t.promo_code?`<code>${esc(t.promo_code)}</code>`:''}</td>
+                <td style="color:var(--txt3);font-size:11px;max-width:150px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${esc(t.notes||'')}</td>
+                <td><div class="td-act">
+                  <button class="btn sm" onclick="openEditTarget(${t.id})">✎</button>
+                  <button class="btn sm suc" onclick="markContactSent(${t.id})">✓</button>
+                  <button class="btn sm warn" onclick="markContactSkipped(${t.id})">Пропустить</button>
+                  <button class="btn sm dan" onclick="confirmDeleteTarget(${t.id})">✕</button>
+                </div></td>
+              </tr>`).join(''):'<tr><td colspan="8"><div class="empty">Список пуст</div></td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `);
+    window._targetsData=targets;
+  }catch(e){ set(errBox(e)); }
+}
+
+function contactStatusBadge(s){
+  if(s==='sent') return '<span class="badge bg">отправлено</span>';
+  if(s==='skipped') return '<span class="badge bw">пропущен</span>';
+  if(s==='queued') return '<span class="badge bb">в очереди</span>';
+  return '<span class="badge">новый</span>';
+}
+
+async function loadContactQueue(){
+  const targets=(window._targetsData||[]).filter(t=>['new','queued'].includes(t.status)).slice(0,5);
+  const el=document.getElementById('contact-queue'); if(!el) return;
+  if(!targets.length){ el.innerHTML='<div class="card"><div class="empty">Нет контактов в очереди</div></div>'; return; }
+  el.innerHTML=targets.map(t=>{
+    const text=outreachText(t);
+    return `<div class="card" style="margin-bottom:8px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div><strong>#${t.id}</strong> <span style="color:var(--txt3)">${esc(t.contact)}</span></div>
+        <span style="font-size:11px;color:var(--txt3)">${esc(t.channel_title||'')}</span>
+      </div>
+      <textarea id="qt_${t.id}" style="width:100%;background:var(--bg3);border:1px solid var(--bd);color:var(--txt2);padding:9px;border-radius:7px;font:inherit;font-size:12px;line-height:1.5;min-height:110px;resize:vertical;outline:none">${esc(text)}</textarea>
+      <div style="display:flex;gap:8px;margin-top:9px">
+        <button class="btn sm" onclick="copyText(document.getElementById('qt_${t.id}').value)">Копировать</button>
+        <button class="btn sm suc" onclick="markContactSent(${t.id})">✓ Отправлено</button>
+        <button class="btn sm warn" onclick="markContactSkipped(${t.id})">Пропустить</button>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+function outreachText(t){
+  const title=t.channel_title||'ваш канал', topic=t.topic||'отношения';
+  const promo=t.promo_code?`\n\nДля вашей аудитории могу дать промокод ${t.promo_code}.`:'';
+  const link=`https://t.me/TogetherDayBot?start=src_partner_${t.id}`;
+  return `Привет! Увидел ${title} — у вас хорошо заходит тема «${topic}».\n\nЯ сделал Telegram-бота «Вместе»: он создаёт красивую карточку для пары с количеством дней вместе. Формат хорошо шарится в личные каналы и партнёру.\n\nМожем сделать лёгкое сотрудничество: вы публикуете пост/историю, а я даю отдельную ссылку, чтобы было видно результат.${promo}\n\nСсылка: ${link}`;
+}
+
+async function markContactSent(id){
+  try{
+    const text=document.getElementById('qt_'+id)?.value||outreachText((window._targetsData||[]).find(t=>t.id===id)||{});
+    await ins('outreach_messages',{target_id:id,message_text:text});
+    await upd('outreach_targets',`id=eq.${id}`,{status:'sent',last_contacted_at:new Date().toISOString()});
+    toast(`#${id} отмечен как отправленный ✓`,'ok'); contacts();
+  }catch(e){ toast(e.message,'err'); }
+}
+async function markContactSkipped(id){
+  try{ await upd('outreach_targets',`id=eq.${id}`,{status:'skipped'}); toast(`#${id} пропущен`,'warn'); contacts(); }catch(e){ toast(e.message,'err'); }
+}
+function confirmDeleteTarget(id){
+  openMo('Удалить контакт?',`<div style="color:var(--txt2)">Контакт #${id} будет удалён безвозвратно.</div>`,[
+    {l:'Отмена',c:'',o:'closeMo()'},{l:'Удалить',c:'dan',o:`doDeleteTarget(${id})`}]);
+}
+async function doDeleteTarget(id){
+  try{ await del('outreach_targets',`id=eq.${id}`); closeMo(); toast(`#${id} удалён`,'warn'); contacts(); }catch(e){ toast(e.message,'err'); }
+}
+
+function openAddTarget(){
+  openMo('Добавить контакт',targetFormHtml(),[{l:'Отмена',c:'',o:'closeMo()'},{l:'Добавить',c:'acc',o:'doAddTarget()'}]);
+}
+function openEditTarget(id){
+  const t=(window._targetsData||[]).find(r=>r.id===id); if(!t) return;
+  openMo('Редактировать контакт',targetFormHtml(t),[{l:'Отмена',c:'',o:'closeMo()'},{l:'Сохранить',c:'acc',o:`doEditTarget(${id})`}]);
+}
+function targetFormHtml(t){
+  return `
+    <div class="field"><label>Контакт (обязательно)</label><input id="at-contact" value="${esc(t?.contact||'')}" placeholder="@owner или ссылка"></div>
+    <div class="g2">
+      <div class="field"><label>Название канала</label><input id="at-title" value="${esc(t?.channel_title||'')}" placeholder="Канал про любовь"></div>
+      <div class="field"><label>Ссылка на канал</label><input id="at-url" value="${esc(t?.channel_url||'')}" placeholder="https://t.me/…"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Тема</label><input id="at-topic" value="${esc(t?.topic||'')}" placeholder="отношения"></div>
+      <div class="field"><label>Промокод</label><input id="at-promo" value="${esc(t?.promo_code||'')}" placeholder="BLOGGER" oninput="this.value=this.value.toUpperCase()"></div>
+    </div>
+    <div class="field"><label>Заметка</label><textarea id="at-notes" placeholder="Почему подходит, условия…">${esc(t?.notes||'')}</textarea></div>
+  `;
+}
+async function doAddTarget(){
+  const contact=document.getElementById('at-contact')?.value.trim();
+  if(!contact){ toast('Введи контакт','err'); return; }
+  try{
+    await ins('outreach_targets',{contact,channel_title:document.getElementById('at-title')?.value.trim()||null,channel_url:document.getElementById('at-url')?.value.trim()||null,topic:document.getElementById('at-topic')?.value.trim()||null,notes:document.getElementById('at-notes')?.value.trim()||null,promo_code:document.getElementById('at-promo')?.value.trim().toUpperCase()||null,status:'new'});
+    closeMo(); toast('Контакт добавлен ✓','ok'); contacts();
+  }catch(e){ toast(e.message,'err'); }
+}
+async function doEditTarget(id){
+  const contact=document.getElementById('at-contact')?.value.trim();
+  if(!contact){ toast('Введи контакт','err'); return; }
+  try{
+    await upd('outreach_targets',`id=eq.${id}`,{contact,channel_title:document.getElementById('at-title')?.value.trim()||null,channel_url:document.getElementById('at-url')?.value.trim()||null,topic:document.getElementById('at-topic')?.value.trim()||null,notes:document.getElementById('at-notes')?.value.trim()||null,promo_code:document.getElementById('at-promo')?.value.trim().toUpperCase()||null});
+    closeMo(); toast('Контакт обновлён ✓','ok'); contacts();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+/* ══════════════ ADMINS ══════════════ */
+async function admins(){
+  set(spinner());
+  try{
+    const rows=await sel('console_accounts','select=id,login,display_name,role,is_active,created_at&order=created_at.asc');
+    set(`
+      <div class="section-head">
+        <h2>Аккаунты консоли</h2>
+        <button class="btn acc" onclick="openAddAdmin()">+ Добавить аккаунт</button>
+      </div>
+      <div class="card" style="padding:0"><div class="tw"><table>
+        <thead><tr><th>Логин</th><th>Имя</th><th>Роль</th><th>Статус</th><th>Создан</th><th></th></tr></thead>
+        <tbody>${rows.length?rows.map(a=>`<tr>
+          <td><code>${esc(a.login)}</code></td>
+          <td>${esc(a.display_name||'')}</td>
+          <td><span class="badge ${a.role==='superadmin'?'bpk':'bb'}">${esc(a.role||'viewer')}</span></td>
+          <td>${a.is_active?'<span class="badge bg">активен</span>':'<span class="badge br">заблокирован</span>'}</td>
+          <td style="color:var(--txt3)">${fd(a.created_at)}</td>
+          <td><div class="td-act">
+            ${a.login!==S.me?.login?`<button class="btn sm ${a.is_active?'dan':'suc'}" onclick="toggleAdmin(${a.id},${!a.is_active})">${a.is_active?'Блок.':'Разблок.'}</button>`:''}
+            <button class="btn sm" onclick="openChangePass(${a.id})">Пароль</button>
+          </div></td>
+        </tr>`).join(''):'<tr><td colspan="6"><div class="empty">Нет аккаунтов</div></td></tr>'}</tbody>
+      </table></div></div>
+    `);
+    window._adminsData=rows;
+  }catch(e){ set(errBox(e)); }
+}
+function openAddAdmin(){
+  openMo('Добавить аккаунт',`
+    <div class="g2">
+      <div class="field"><label>Логин</label><input id="aa-login" placeholder="moderator1" autocomplete="off"></div>
+      <div class="field"><label>Пароль</label><input id="aa-pass" type="password"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Отображаемое имя</label><input id="aa-name" placeholder="Иван"></div>
+      <div class="field"><label>Роль</label>
+        <select id="aa-role"><option value="superadmin">superadmin</option><option value="admin">admin</option><option value="viewer" selected>viewer</option></select>
+      </div>
+    </div>
+  `,[{l:'Отмена',c:'',o:'closeMo()'},{l:'Создать',c:'acc',o:'doAddAdmin()'}]);
+}
+async function doAddAdmin(){
+  const login=document.getElementById('aa-login')?.value.trim(), pass=document.getElementById('aa-pass')?.value, name=document.getElementById('aa-name')?.value.trim(), role=document.getElementById('aa-role')?.value;
+  if(!login||!pass){ toast('Логин и пароль обязательны','err'); return; }
+  try{ await ins('console_accounts',{login,password_hash:pass,display_name:name||null,role,is_active:true}); closeMo(); toast(`@${login} создан ✓`,'ok'); admins(); }catch(e){ toast(e.message,'err'); }
+}
+async function toggleAdmin(id,val){
+  try{ await upd('console_accounts',`id=eq.${id}`,{is_active:val}); toast(val?'Активирован':'Заблокирован',val?'ok':'warn'); admins(); }catch(e){ toast(e.message,'err'); }
+}
+function openChangePass(id){
+  openMo('Сменить пароль',`<div class="field"><label>Новый пароль</label><input id="cp-pass" type="password" autocomplete="new-password"></div>`,[{l:'Отмена',c:'',o:'closeMo()'},{l:'Сохранить',c:'acc',o:`doChangePass(${id})`}]);
+}
+async function doChangePass(id){
+  const pass=document.getElementById('cp-pass')?.value;
+  if(!pass){ toast('Введи пароль','err'); return; }
+  try{ await upd('console_accounts',`id=eq.${id}`,{password_hash:pass}); closeMo(); toast('Пароль изменён ✓','ok'); }catch(e){ toast(e.message,'err'); }
+}
+
+/* ══════════════ SETTINGS ══════════════ */
+function settings(){
+  set(`
+    <div class="section-head"><h2>Настройки</h2></div>
+    <div class="card">
+      <div class="card-title"><div class="dot"></div>Информация о сессии</div>
+      <div class="ie-row"><span class="ie-key">Вошёл как</span><span class="ie-val">${esc(S.me?.login||'?')}</span></div>
+      <div class="ie-row"><span class="ie-key">Роль</span><span class="ie-val">${esc(S.me?.role||'?')}</span></div>
+      <div class="ie-row"><span class="ie-key">Supabase URL</span><span class="ie-val" style="font-size:10px;color:var(--txt3)">${esc(SB_URL)}</span></div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="dot pur"></div>Подсказки</div>
+      <div style="font-size:12px;color:var(--txt2);line-height:1.9">
+        Для работы с SQL-запросами и инспекции базы данных используй раздел
+        <button class="btn sm pur" style="margin-left:4px" onclick="go('database')">⬡ База данных</button><br>
+        Там же можно выполнять произвольные запросы через Supabase RPC или REST API.
+      </div>
+    </div>
+  `);
+}
+
+/* ══════════════ BROADCAST ══════════════ */
+async function broadcast(){
+  set(spinner());
+  try{
+    let usrs;
+    try {
+      usrs = await sel('users','select=tg_id,is_premium,my_name,partner_name,username');
+    } catch(e) {
+      usrs = await sel('users','select=tg_id,is_premium,my_name,partner_name');
+    }
+    const [pending, bcs] = await Promise.all([
+      sel('pending_users','select=tg_id').catch(()=>[]),
+      sel('broadcasts','select=*&order=created_at.desc&limit=30').catch(()=>[]),
+    ]);
+    const allCount = usrs.length;
+    const premCount = usrs.filter(u=>u.is_premium).length;
+    const freeCount = allCount - premCount;
+    const pendCount = (pending||[]).length;
+
+    const statusBadge = s => ({
+      'pending':'<span class="badge bw">ожидает</span>',
+      'sending':'<span class="badge bb">отправляется…</span>',
+      'done':'<span class="badge bg">готово</span>',
+      'failed':'<span class="badge br">ошибка</span>',
+    }[s]||`<span class="badge">${esc(s)}</span>`);
+
+    set(`
+      <div class="section-head">
+        <h2>Рассылка</h2>
+        <button class="btn acc" onclick="openNewBroadcast(${allCount},${premCount},${freeCount},${pendCount})">+ Новая рассылка</button>
+      </div>
+
+      <!-- Аудитории -->
+      <div class="g4" style="margin-bottom:20px">
+        ${sc('Все пользователи',allCount,'Зарегистрированы в боте','')}
+        ${sc('Премиум',premCount,'is_premium = true','pink')}
+        ${sc('Без премиума',freeCount,'is_premium = false','blue')}
+        ${sc('Незавершённые',pendCount,'Не прошли флоу регистрации','warn')}
+      </div>
+
+      <!-- История рассылок -->
+      <div class="card" style="padding:0">
+        <div style="padding:14px 18px 10px;display:flex;align-items:center;justify-content:space-between">
+          <div class="card-title" style="margin:0"><div class="dot"></div>История рассылок</div>
+          <button class="btn sm" onclick="broadcast()">↻</button>
+        </div>
+        <div class="tw">
+          <table>
+            <thead><tr>
+              <th>#</th><th>Кому</th><th>Текст</th><th>Отправлено</th><th>Ошибок</th><th>Статус</th><th>Дата</th><th></th>
+            </tr></thead>
+            <tbody>${(bcs&&bcs.length)?bcs.map(b=>`<tr>
+              <td style="color:var(--txt3)">${b.id}</td>
+              <td><span class="badge ${b.audience==='all'?'bg':b.audience==='premium'?'bpk':b.audience==='pending'?'bw':'bpur'}">${esc(b.audience)}</span></td>
+              <td style="max-width:260px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--txt2)">${esc((b.text||'').slice(0,80))}${(b.text||'').length>80?'…':''}</td>
+              <td>${b.sent_count||0}</td>
+              <td>${b.fail_count?`<span style="color:var(--bad)">${b.fail_count}</span>`:0}</td>
+              <td>${statusBadge(b.status)}</td>
+              <td style="color:var(--txt3)">${fd(b.created_at)}</td>
+              <td><div class="td-act">
+                <button class="btn sm" onclick="openBroadcastPreview(${b.id})">👁</button>
+                <button class="btn sm dan" onclick="confirmDeleteBroadcast(${b.id})">✕</button>
+              </div></td>
+            </tr>`).join(''):'<tr><td colspan="8"><div class="empty">Рассылок ещё не было</div></td></tr>'}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+    `);
+    window._bcAllCount=allCount; window._bcPremCount=premCount; window._bcFreeCount=freeCount; window._bcPendCount=pendCount;
+    window._bcsData = bcs||[];
+    window._bcUsersData = usrs.map(u=>({tg_id:u.tg_id, my_name:u.my_name||'', partner_name:u.partner_name||'', username:u.username||''}));
+  }catch(e){ set(errBox(e)); }
+}
+
+let _bcDraftIds = []; // tg_id для specific-рассылки
+
+function openNewBroadcast(allC,premC,freeC,pendC){
+  _bcDraftIds = [];
+  _bcMediaFile = null;
+  openMo('Новая рассылка', broadcastFormHtml(allC,premC,freeC,pendC), [
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Отправить',c:'acc',o:'doSendBroadcast()'},
+  ]);
+  document.getElementById('mo-box').classList.add('wide');
+  setTimeout(()=>{ updateBcAudPreview(allC,premC,freeC,pendC); }, 20);
+  setTimeout(()=>{ renderBcUserList(); }, 50);
+}
+
+function broadcastFormHtml(allC,premC,freeC,pendC){
+  return `
+    <div class="field">
+      <label>Аудитория</label>
+      <select id="bc-aud" onchange="updateBcAudPreview(${allC},${premC},${freeC},${pendC})">
+        <option value="all">Все пользователи (${allC})</option>
+        <option value="premium">Только премиум (${premC})</option>
+        <option value="free">Без премиума (${freeC})</option>
+        <option value="pending">Незавершённые регистрации (${pendC})</option>
+        <option value="specific">Конкретные пользователи</option>
+      </select>
+    </div>
+    <div id="bc-specific-block" style="display:none">
+      <div class="field">
+        <label>Поиск пользователей</label>
+        <input id="bc-user-search" class="filter-input" style="width:100%" placeholder="Введите имя, username или TG ID…" oninput="filterBcUsers()" autocomplete="off">
+      </div>
+      <div id="bc-user-list" style="max-height:180px;overflow-y:auto;border:1px solid var(--bd);border-radius:8px;background:var(--bg3)"></div>
+      <div id="bc-selected-count" style="font-size:11px;color:var(--txt3);margin-top:6px"></div>
+    </div>
+    <div id="bc-aud-preview" style="font-size:11px;color:var(--txt3);margin:-6px 0 12px;padding:7px 10px;background:var(--bg4);border-radius:6px"></div>
+    <div class="field">
+      <label>Медиафайл (необязательно)</label>
+      <div style="display:flex;align-items:center;gap:8px">
+        <button type="button" class="btn" id="bc-media-btn" onclick="document.getElementById('bc-media-input').click()">📎 Прикрепить фото/видео/гиф</button>
+        <span id="bc-media-name" style="font-size:11px;color:var(--txt3)"></span>
+        <button type="button" class="btn sm dan" id="bc-media-remove" style="display:none" onclick="removeBcMedia()">✕</button>
+      </div>
+      <input type="file" id="bc-media-input" accept="image/*,video/*" style="display:none" onchange="onBcMediaSelect(this)">
+    </div>
+    <div class="field">
+      <label>Текст сообщения</label>
+      <div class="fmt-bar">
+        <button type="button" class="btn sm" onclick="bcFormat('bold')" title="Жирный"><b>B</b></button>
+        <button type="button" class="btn sm" onclick="bcFormat('italic')" title="Курсив"><i>I</i></button>
+        <button type="button" class="btn sm" onclick="bcFormat('strike')" title="Зачёркнутый"><s>S</s></button>
+        <button type="button" class="btn sm" onclick="bcFormat('code')" title="Код"><code style="font-size:11px;background:none;padding:0">&lt;/&gt;</code></button>
+        <button type="button" class="btn sm" onclick="bcFormat('link')" title="Ссылка">🔗</button>
+      </div>
+      <textarea id="bc-text" rows="6" placeholder="🩷 Привет! Хочу напомнить, что…" oninput="bcPreview()" style="border-radius:0 0 8px 8px"></textarea>
+      <div id="bc-preview" style="display:none;margin-top:8px;padding:10px 12px;background:var(--bg);border:1px solid var(--bd);border-radius:8px;font-size:12px;color:var(--txt2);white-space:pre-wrap;line-height:1.6;max-height:120px;overflow-y:auto"></div>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);margin-top:-6px">
+      Рассылка отправляется ботом в фоне (~30 сообщ./сек).
+    </div>
+  `;
+}
+
+function updateBcAudPreview(allC,premC,freeC,pendC){
+  const aud=document.getElementById('bc-aud')?.value||'all';
+  const specBlock=document.getElementById('bc-specific-block');
+  if(specBlock) specBlock.style.display=aud==='specific'?'':'none';
+  const counts={all:allC,premium:premC,free:freeC,pending:pendC,specific:_bcDraftIds.length};
+  const labels={all:'все зарегистрированные пользователи',premium:'только премиум-пользователи',free:'пользователи без премиума',pending:'незавершённые регистрации',specific:'конкретные пользователи'};
+  const el=document.getElementById('bc-aud-preview');
+  if(el) el.textContent=`Получат сообщение: ${counts[aud]||0} чел. (${labels[aud]||aud})`;
+  const cntEl=document.getElementById('bc-selected-count');
+  if(cntEl && aud==='specific') cntEl.textContent=`Выбрано: ${_bcDraftIds.length}`;
+}
+
+function renderBcUserList(filter){
+  const listEl=document.getElementById('bc-user-list');
+  if(!listEl) return;
+  const users=window._bcUsersData||[];
+  const q=(filter||'').toLowerCase();
+  const filtered=q?users.filter(u=>{
+    return String(u.tg_id).includes(q)
+      || (u.my_name||'').toLowerCase().includes(q)
+      || (u.partner_name||'').toLowerCase().includes(q)
+      || (u.username||'').toLowerCase().includes(q);
+  }):users;
+  const display=filtered.slice(0,100);
+  listEl.innerHTML=display.length?display.map(u=>{
+    const sel=_bcDraftIds.includes(u.tg_id);
+    const label=u.my_name||('ID: '+u.tg_id);
+    const sub=u.username?'@'+u.username:(u.partner_name?'& '+u.partner_name:'');
+    return `<div style="display:flex;align-items:center;gap:8px;padding:7px 10px;cursor:pointer;border-bottom:1px solid var(--bd);transition:background .1s${sel?';background:rgba(244,114,154,.08)':''}" onclick="toggleBcUser(${u.tg_id})" onmouseenter="this.style.background='rgba(244,114,154,.04)'" onmouseleave="this.style.background='${sel?'rgba(244,114,154,.08)':''}'">
+      <div style="width:18px;height:18px;border-radius:4px;border:1.5px solid ${sel?'var(--acc)':'var(--bd2)'};background:${sel?'var(--acc)':'transparent'};display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:11px;color:#fff">${sel?'✓':''}</div>
+      <div style="min-width:0">
+        <div style="font-size:12px;color:var(--txt);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${esc(label)} <span style="color:var(--txt3);font-size:10px">${sub?'· '+sub:''}</span></div>
+      </div>
+      <div style="margin-left:auto;font-size:10px;color:var(--txt3);flex-shrink:0">${u.tg_id}</div>
+    </div>`;
+  }).join(''):'<div style="padding:12px;color:var(--txt3);font-size:12px;text-align:center">Пользователи не найдены</div>';
+}
+
+function filterBcUsers(){
+  const q=document.getElementById('bc-user-search')?.value||'';
+  renderBcUserList(q);
+}
+
+function toggleBcUser(tgId){
+  const idx=_bcDraftIds.indexOf(tgId);
+  if(idx===-1) _bcDraftIds.push(tgId); else _bcDraftIds.splice(idx,1);
+  const q=document.getElementById('bc-user-search')?.value||'';
+  renderBcUserList(q);
+  const aud=document.getElementById('bc-aud')?.value||'all';
+  if(aud==='specific'){
+    const cntEl=document.getElementById('bc-selected-count');
+    if(cntEl) cntEl.textContent=`Выбрано: ${_bcDraftIds.length}`;
+    // Update preview count
+    const allC=window._bcAllCount||0,premC=window._bcPremCount||0,freeC=window._bcFreeCount||0,pendC=window._bcPendCount||0;
+    updateBcAudPreview(allC,premC,freeC,pendC);
+  }
+}
+
+/* Media handling for broadcast */
+let _bcMediaFile = null;
+
+function onBcMediaSelect(input){
+  const file=input.files[0];
+  if(!file) return;
+  const maxSize=50*1024*1024;
+  if(file.size>maxSize){ toast('Файл слишком большой (макс. 50 МБ)','err'); input.value=''; return; }
+  _bcMediaFile=file;
+  const nameEl=document.getElementById('bc-media-name');
+  const removeBtn=document.getElementById('bc-media-remove');
+  if(nameEl) nameEl.textContent=file.name+' ('+Math.round(file.size/1024)+' КБ)';
+  if(removeBtn) removeBtn.style.display='';
+}
+
+function removeBcMedia(){
+  _bcMediaFile=null;
+  const input=document.getElementById('bc-media-input');
+  if(input) input.value='';
+  const nameEl=document.getElementById('bc-media-name');
+  const removeBtn=document.getElementById('bc-media-remove');
+  if(nameEl) nameEl.textContent='';
+  if(removeBtn) removeBtn.style.display='none';
+}
+
+/* Markdown formatting toolbar */
+function bcFormat(type){
+  const ta=document.getElementById('bc-text');
+  if(!ta) return;
+  const start=ta.selectionStart, end=ta.selectionEnd;
+  const sel=ta.value.substring(start,end);
+  let before='', after='';
+  if(type==='bold'){ before='*'; after='*'; }
+  else if(type==='italic'){ before='_'; after='_'; }
+  else if(type==='strike'){ before='~'; after='~'; }
+  else if(type==='code'){ before='`'; after='`'; }
+  else if(type==='link'){
+    if(sel){ before='['; after='](https://)'; }
+    else { before='['; after='](https://)'; }
+  }
+  const replacement=sel?(before+sel+after):(before+after);
+  ta.setRangeText(replacement,start,end,'select');
+  ta.focus();
+  if(!sel){
+    ta.selectionStart=start+before.length;
+    ta.selectionEnd=start+before.length;
+  }
+  bcPreview();
+}
+
+function bcPreview(){
+  const ta=document.getElementById('bc-text');
+  const preview=document.getElementById('bc-preview');
+  if(!ta||!preview) return;
+  const text=ta.value;
+  if(!text.trim()){ preview.style.display='none'; return; }
+  preview.style.display='block';
+  let html=esc(text);
+  html=html.replace(/\*(.+?)\*/g,'<strong>$1</strong>');
+  html=html.replace(/_(.+?)_/g,'<em>$1</em>');
+  html=html.replace(/~(.+?)~/g,'<s>$1</s>');
+  html=html.replace(/`(.+?)`/g,'<code style="background:var(--bg4);padding:1px 4px;border-radius:3px;font-size:11px">$1</code>');
+  html=html.replace(/\[(.+?)\]\((.+?)\)/g,'<a href="$2" style="color:var(--acc)">$1</a>');
+  preview.innerHTML=html;
+}
+
+async function doSendBroadcast(){
+  const aud=document.getElementById('bc-aud')?.value||'all';
+  const text=(document.getElementById('bc-text')?.value||'').trim();
+  if(!text){ toast('Введи текст рассылки','err'); return; }
+
+  let targetIds=[];
+  if(aud==='pending'){
+    try{
+      const rows=await sel('pending_users','select=tg_id');
+      targetIds=rows.map(r=>r.tg_id);
+    }catch(e){ toast('Не удалось получить pending-юзеров: '+e.message,'err'); return; }
+    if(!targetIds.length){ toast('Нет pending-пользователей','warn'); return; }
+  } else if(aud==='specific'){
+    targetIds=[..._bcDraftIds];
+    if(!targetIds.length){ toast('Выбери хотя бы одного пользователя','err'); return; }
+  }
+
+  let mediaBase64=null, mediaType=null;
+  if(_bcMediaFile){
+    try{
+      const buf=await _bcMediaFile.arrayBuffer();
+      const bytes=new Uint8Array(buf);
+      let binary=''; for(let i=0;i<bytes.length;i++) binary+=String.fromCharCode(bytes[i]);
+      mediaBase64=btoa(binary);
+      mediaType=_bcMediaFile.type||'image/png';
+    }catch(e){ toast('Ошибка чтения файла: '+e.message,'err'); return; }
+  }
+
+  const audience = aud==='pending'?'specific':aud;
+  const payload={
+    created_by: S.me?.login||'console',
+    audience,
+    target_ids: targetIds,
+    text,
+    status:'pending',
+    sent_count:0,
+    fail_count:0,
+  };
+  if(mediaBase64 && mediaType){
+    payload.media_base64 = mediaBase64;
+    payload.media_type = mediaType;
+  }
+  try{
+    await ins('broadcasts',payload);
+    closeMo();
+    toast('Рассылка поставлена в очередь ✓','ok');
+    broadcast();
+  }catch(e){
+    if(e.message&&e.message.includes('column')&&e.message.includes('media')){
+      toast('Таблица broadcasts не поддерживает медиа. Выполни SQL в БД:\nALTER TABLE broadcasts ADD COLUMN media_base64 TEXT;\nALTER TABLE broadcasts ADD COLUMN media_type TEXT;','err');
+    } else { toast(e.message,'err'); }
+  }
+}
+
+async function openBroadcastPreview(id){
+  const bc=(window._bcsData||[]).find(b=>b.id===id);
+  if(!bc){ toast('Нет данных','warn'); return; }
+  const hasMedia=!!bc.media_base64;
+  const mediaInfo=hasMedia?`<div class="kvi"><div class="kvk">Медиа</div><div class="kvv"><span class="badge bg">есть</span> ${esc(bc.media_type||'')}</div></div>`:'<div class="kvi"><div class="kvk">Медиа</div><div class="kvv"><span class="badge">нет</span></div></div>';
+  const targets=bc.target_ids&&bc.target_ids.length?bc.target_ids.join(', '):(bc.audience==='all'?'Все пользователи':bc.audience==='premium'?'Премиум':bc.audience==='free'?'Без премиума':bc.audience==='pending'?'Pending':'—');
+  const errorsHtml=(bc.fail_count||0)>0?`<div style="margin-top:10px;padding:10px;background:rgba(255,94,94,.06);border:1px solid rgba(255,94,94,.2);border-radius:8px;font-size:12px;color:var(--bad)">⚠ Не удалось доставить ${bc.fail_count} из ${bc.sent_count+bc.fail_count} сообщений. Возможные причины: бот заблокирован пользователем, приватный аккаунт, или Telegram временно ограничил отправку.</div>`:'';
+  openMo(`Рассылка #${id}`,`
+    <div style="margin-bottom:12px">
+      <div class="kv">
+        <div class="kvi"><div class="kvk">Аудитория</div><div class="kvv">${esc(bc.audience)}</div></div>
+        <div class="kvi"><div class="kvk">Статус</div><div class="kvv">${esc(bc.status)}</div></div>
+        <div class="kvi"><div class="kvk">Отправлено</div><div class="kvv">${bc.sent_count||0}</div></div>
+        <div class="kvi"><div class="kvk">Ошибок</div><div class="kvv" style="color:${(bc.fail_count||0)>0?'var(--bad)':'inherit'}">${bc.fail_count||0}</div></div>
+        ${mediaInfo}
+        <div class="kvi"><div class="kvk">Кому</div><div class="kvv" style="font-size:11px;word-break:break-all">${esc(targets)}</div></div>
+        <div class="kvi"><div class="kvk">Создана</div><div class="kvv" style="font-size:11px">${fd(bc.created_at)}</div></div>
+        <div class="kvi"><div class="kvk">Завершена</div><div class="kvv" style="font-size:11px">${fd(bc.finished_at)||'—'}</div></div>
+      </div>
+      ${errorsHtml}
+    </div>
+    <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">Текст сообщения</div>
+    <div style="background:var(--bg);border:1px solid var(--bd);border-radius:8px;padding:12px 14px;font-size:12px;color:var(--txt2);white-space:pre-wrap;line-height:1.6;max-height:280px;overflow-y:auto">${esc(bc.text||'')}</div>
+  `,[{l:'Закрыть',c:'',o:'closeMo()'}]);
+}
+
+function confirmDeleteBroadcast(id){
+  openMo('Удалить рассылку?',`<div style="color:var(--txt2)">Рассылка #${id} будет удалена из истории безвозвратно.</div>`,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Удалить',c:'dan',o:`doDeleteBroadcast(${id})`},
+  ]);
+}
+
+async function doDeleteBroadcast(id){
+  try{
+    await del('broadcasts',`id=eq.${id}`);
+    closeMo(); toast(`Рассылка #${id} удалена`,'warn'); broadcast();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+/* ══════════════ DATABASE ══════════════ */
+function database(){
+  const sql1=`-- Таблица аккаунтов консоли
+CREATE TABLE IF NOT EXISTS console_accounts (
+  id            BIGSERIAL PRIMARY KEY,
+  login         TEXT NOT NULL UNIQUE,
+  password_hash TEXT NOT NULL,
+  display_name  TEXT,
+  role          TEXT NOT NULL DEFAULT 'viewer',
+  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
+  created_at    TIMESTAMPTZ DEFAULT NOW()
+);
+INSERT INTO console_accounts (login, password_hash, display_name, role)
+VALUES ('admin', 'changeme', 'Администратор', 'superadmin')
+ON CONFLICT (login) DO NOTHING;`;
+  const sql2=`-- Цена премиума
+INSERT INTO settings (key, value) VALUES ('premium_price', '50')
+ON CONFLICT (key) DO NOTHING;`;
+  const sql3=`-- Посмотреть все таблицы
+SELECT table_name,
+  pg_size_pretty(pg_total_relation_size(
+    quote_ident(table_schema)||'.'||quote_ident(table_name)
+  )) AS size
+FROM information_schema.tables
+WHERE table_schema = 'public'
+ORDER BY table_name;`;
+  const sql4=`-- Структура таблиц
+SELECT c.table_name, c.column_name, c.data_type,
+       c.is_nullable, c.column_default
+FROM information_schema.columns c
+WHERE c.table_schema = 'public'
+ORDER BY c.table_name, c.ordinal_position;`;
+  set(`
+    <div class="section-head"><h2>База данных</h2></div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title"><div class="dot ok"></div>Произвольный запрос к Supabase REST API</div>
+      <div class="g2" style="margin-bottom:10px">
+        <div class="field"><label>Таблица</label><input id="db-table" placeholder="users" autocomplete="off"></div>
+        <div class="field"><label>Query string</label><input id="db-query" placeholder="select=*&limit=10" autocomplete="off"></div>
+      </div>
+      <div style="display:flex;gap:8px;margin-bottom:10px">
+        <button class="btn suc" onclick="dbRunSelect()">▶ Выполнить SELECT</button>
+        <button class="btn" onclick="dbClear()">Очистить</button>
+      </div>
+      <div id="db-result" style="display:none">
+        <div style="font-size:10px;color:var(--txt3);margin-bottom:6px" id="db-result-meta"></div>
+        <div class="sql-box" id="db-result-box" style="max-height:320px;overflow-y:auto;font-size:11px"></div>
+      </div>
+    </div>
+    <div class="g2">
+      <div>
+        <div class="card">
+          <div class="card-title"><div class="dot pur"></div>SQL: создать таблицу аккаунтов</div>
+          <div style="font-size:11px;color:var(--txt3);margin-bottom:6px">Supabase → SQL Editor → New Query</div>
+          ${sqlBox(sql1)}
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="dot"></div>SQL: добавить цену в settings</div>
+          ${sqlBox(sql2)}
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="dot ok"></div>SQL: добавить медиа в рассылки, username в users, RLS для broadcasts</div>
+          <div style="font-size:11px;color:var(--txt3);margin-bottom:6px">Выполни если ещё не добавлены эти колонки и политики</div>
+          ${sqlBox(`-- Медиафайлы в рассылках (фото/видео/гиф)
+ALTER TABLE broadcasts ADD COLUMN IF NOT EXISTS media_base64 TEXT;
+ALTER TABLE broadcasts ADD COLUMN IF NOT EXISTS media_type TEXT;
+
+-- Username пользователя (для поиска в рассылке)
+ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT;
+
+-- RLS: разрешить боту (anon-ключ) читать и писать broadcasts
+ALTER TABLE broadcasts ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname='broadcasts_anon_all' AND tablename='broadcasts') THEN
+    CREATE POLICY broadcasts_anon_all ON broadcasts FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;
+
+-- RLS: разрешить боту читать и писать pending_users
+ALTER TABLE pending_users ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname='pending_users_anon_all' AND tablename='pending_users') THEN
+    CREATE POLICY pending_users_anon_all ON pending_users FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;
+
+-- RLS: разрешить боту писать в card_logs
+ALTER TABLE card_logs ENABLE ROW LEVEL SECURITY;
+DO $$ BEGIN
+  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname='card_logs_anon_all' AND tablename='card_logs') THEN
+    CREATE POLICY card_logs_anon_all ON card_logs FOR ALL USING (true) WITH CHECK (true);
+  END IF;
+END $$;`)}
+        </div>
+      </div>
+      <div>
+        <div class="card">
+          <div class="card-title"><div class="dot ok"></div>SQL: инспекция БД</div>
+          ${sqlBox(sql3)}
+          <div style="margin-top:10px">${sqlBox(sql4)}</div>
+        </div>
+      </div>
+    </div>
+  `);
+}
+
+async function dbRunSelect(){
+  const table = document.getElementById('db-table')?.value.trim();
+  const query = document.getElementById('db-query')?.value.trim() || 'select=*&limit=20';
+  if(!table){ toast('Введи название таблицы','err'); return; }
+  const resEl = document.getElementById('db-result');
+  const metaEl = document.getElementById('db-result-meta');
+  const boxEl = document.getElementById('db-result-box');
+  resEl.style.display='none';
+  try{
+    const rows = await sel(table, query);
+    resEl.style.display='block';
+    metaEl.textContent = `Получено строк: ${Array.isArray(rows)?rows.length:1} · ${table}?${query}`;
+    boxEl.textContent = JSON.stringify(rows, null, 2);
+  }catch(e){
+    resEl.style.display='block';
+    metaEl.textContent = 'Ошибка запроса';
+    boxEl.textContent = e.message;
+    boxEl.style.color='var(--bad)';
+  }
+}
+function dbClear(){
+  const r=document.getElementById('db-result'); if(r) r.style.display='none';
+  const b=document.getElementById('db-result-box'); if(b) b.style.color='';
+}
+
+/* ══════════════ HELPERS ══════════════ */
+function esc(v){ return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#39;'); }
+function fd(d){ if(!d) return '—'; try{ return new Date(d).toLocaleString('ru-RU',{day:'2-digit',month:'2-digit',year:'2-digit',hour:'2-digit',minute:'2-digit'}); }catch{ return d; } }
+function spinner(){ return '<div style="color:var(--txt3);padding:40px 0;text-align:center"><span class="spin"></span></div>'; }
+function errBox(e){ return `<div class="card"><div style="color:var(--bad);margin-bottom:6px">Ошибка загрузки</div><div style="color:var(--txt3);font-size:12px;white-space:pre-wrap">${esc(e.message)}</div></div>`; }
+function setConn(ok){ document.getElementById('conn-dot').className='conn-dot'+(ok?' ok':''); document.getElementById('conn-label').textContent=ok?'Подключено':'Нет соединения'; }
+async function copyText(text){ try{ await navigator.clipboard.writeText(text); toast('Скопировано ✓','ok'); }catch{ toast('Не удалось скопировать','err'); } }
+function sc(label,val,sub,accent){ const cls=accent==='pink'?'pink':accent==='purple'?'purple':accent==='blue'?'blue':accent==='ok'?'ok':''; return `<div class="sc"><div class="sl">${label}</div><div class="sv ${cls}">${esc(String(val))}</div><div class="ss">${sub}</div></div>`; }
+function sqlBox(sql){ const id='sql_'+Math.random().toString(36).slice(2,8); return `<div class="sql-box" id="${id}">${esc(sql)}<button class="sql-copy" onclick="copyText(document.getElementById('${id}').textContent.replace('Копировать','').trim())">Копировать</button></div>`; }
+function kv(label,val){ return `<div class="kvi"><div class="kvk">${label}</div><div class="kvv">${esc(val)}</div></div>`; }
+
+let _toastT;
+function toast(msg,type=''){ const el=document.getElementById('toast'); el.textContent=msg; el.className='show'+(type?' '+type:''); clearTimeout(_toastT); _toastT=setTimeout(()=>{el.className='';},2800); }
+
+function openMo(title,body,actions=[]){
+  document.getElementById('mo-box').classList.remove('wide');
+  document.getElementById('mt').textContent=title;
+  document.getElementById('mb').innerHTML=body;
+  document.getElementById('ma').innerHTML=actions.map(a=>`<button class="btn ${a.c||''}" onclick="${a.o}">${a.l}</button>`).join('');
+  document.getElementById('mo').classList.add('open');
+}
+function closeMo(e){ if(e&&e.target!==document.getElementById('mo')) return; document.getElementById('mo').classList.remove('open'); }
+document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.getElementById('mo').classList.remove('open'); });
+
+/* ══════════════ BOOTSTRAP ══════════════ */
+(function init(){
+  const saved=localStorage.getItem('vmeste_session');
+  if(saved){ try{ S.me=JSON.parse(saved); startApp(); return; }catch{} }
+  // Enter key on login
+  document.getElementById('ls-pass').addEventListener('keydown',e=>{ if(e.key==='Enter') doLogin(); });
+  document.getElementById('ls-login').addEventListener('keydown',e=>{ if(e.key==='Enter') document.getElementById('ls-pass').focus(); });
+})();
+</script>
+</body>
+</html>
