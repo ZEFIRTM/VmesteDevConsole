@@ -13,12 +13,38 @@
   --acc:#f4729a;--acc2:#c96ce8;--acc3:#7b6cff;
   --ok:#3fcf8e;--warn:#f5a623;--bad:#ff5e5e;
   --txt:#ede8f5;--txt2:#9b91b8;--txt3:#5c5378;
+  --thd:rgba(0,0,0,.15);--thd2:rgba(0,0,0,.2);--modal-bg:rgba(0,0,0,.65);
   --sw:228px;--hh:52px;--r:10px;
 }
+/* THEME: light (белая) */
+html[data-theme="light"]{
+  --bg:#f5f5f8;--bg2:#ffffff;--bg3:#f0eef5;--bg4:#e7e4ef;
+  --bd:#e2dfea;--bd2:#cfc9dd;
+  --acc:#e8558a;--acc2:#a84fd1;--acc3:#6a5ae0;
+  --ok:#1fa870;--warn:#c9820a;--bad:#e14545;
+  --txt:#1c1830;--txt2:#5c5578;--txt3:#948caa;
+  --thd:rgba(0,0,0,.035);--thd2:rgba(0,0,0,.05);--modal-bg:rgba(20,15,30,.45);
+}
+/* THEME: dark (нейтральная тёмная) */
+html[data-theme="dark"]{
+  --bg:#0b0c0e;--bg2:#141517;--bg3:#1b1c1f;--bg4:#232427;
+  --bd:#2a2b2f;--bd2:#3a3b40;
+  --acc:#f4729a;--acc2:#c96ce8;--acc3:#7b6cff;
+  --ok:#3fcf8e;--warn:#f5a623;--bad:#ff5e5e;
+  --txt:#eceded;--txt2:#9a9ba1;--txt3:#5c5d63;
+  --thd:rgba(0,0,0,.2);--thd2:rgba(0,0,0,.25);--modal-bg:rgba(0,0,0,.65);
+}
 *{margin:0;padding:0;box-sizing:border-box}
-body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;min-height:100vh;overflow:hidden}
+html{transition:background .15s}
+body{background:var(--bg);color:var(--txt);font-family:'Inter',sans-serif;font-size:13px;min-height:100vh;overflow:hidden;transition:background .15s,color .15s}
 #app{display:flex;height:100vh}
 a{color:inherit;text-decoration:none}
+
+/* THEME SWITCHER */
+.theme-switch{display:flex;align-items:center;gap:4px;background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:3px}
+.theme-btn{width:24px;height:24px;border-radius:6px;border:1px solid transparent;cursor:pointer;display:flex;align-items:center;justify-content:center;font-size:12px;background:none;color:var(--txt3);transition:all .15s}
+.theme-btn:hover{color:var(--txt)}
+.theme-btn.active{background:var(--bg4);border-color:var(--bd2);color:var(--txt)}
 
 /* LOGIN */
 #login-screen{position:fixed;inset:0;z-index:999;background:var(--bg);display:flex;align-items:center;justify-content:center}
@@ -120,7 +146,7 @@ a{color:inherit;text-decoration:none}
 /* TABLE */
 .tw{overflow-x:auto}
 table{width:100%;border-collapse:collapse;font-size:12.5px}
-th{text-align:left;padding:8px 12px;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--bd);font-weight:500;white-space:nowrap;background:rgba(0,0,0,.15)}
+th{text-align:left;padding:8px 12px;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;border-bottom:1px solid var(--bd);font-weight:500;white-space:nowrap;background:var(--thd)}
 th.sortable{cursor:pointer;user-select:none}
 th.sortable:hover{color:var(--txt2)}
 th.sort-asc::after{content:' ↑';color:var(--acc)}
@@ -141,7 +167,7 @@ tr:hover td{background:rgba(244,114,154,.025)}
 code{background:var(--bg4);border-radius:5px;padding:2px 6px;font-size:11px;color:var(--acc2);font-family:'JetBrains Mono',monospace}
 
 /* MODAL */
-#mo{display:none;position:fixed;inset:0;z-index:999;background:rgba(0,0,0,.65);backdrop-filter:blur(3px);align-items:center;justify-content:center}
+#mo{display:none;position:fixed;inset:0;z-index:999;background:var(--modal-bg);backdrop-filter:blur(3px);align-items:center;justify-content:center}
 #mo.open{display:flex}
 .mo-box{background:var(--bg2);border:1px solid var(--bd2);border-radius:14px;padding:24px;width:500px;max-width:94vw;max-height:88vh;overflow-y:auto}
 .mo-box.wide{width:680px}
@@ -223,13 +249,46 @@ select.filter-input{cursor:pointer}
 
 /* promo uses mini table inside modal */
 .mini-table{width:100%;border-collapse:collapse;font-size:12px}
-.mini-table th{text-align:left;padding:5px 8px;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--bd);background:rgba(0,0,0,.2)}
+.mini-table th{text-align:left;padding:5px 8px;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--bd);background:var(--thd2)}
 .mini-table td{padding:6px 8px;border-bottom:1px solid var(--bd);color:var(--txt2)}
 .mini-table tr:last-child td{border-bottom:none}
 
+/* MOBILE NAV */
+.mobile-menu-btn{display:none;background:var(--bg3);border:1px solid var(--bd);color:var(--txt2);width:34px;height:34px;border-radius:8px;font-size:16px;cursor:pointer;align-items:center;justify-content:center;flex-shrink:0}
+.mobile-menu-btn:hover{color:var(--txt)}
+#sidebar-backdrop{display:none;position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:900}
+#sidebar-backdrop.show{display:block}
+
+@media(max-width:980px){
+  .g4{grid-template-columns:repeat(2,1fr)}
+}
+@media(max-width:900px){
+  :root{--sw:240px}
+  .mobile-menu-btn{display:flex}
+  #sidebar{
+    position:fixed;top:0;bottom:0;left:0;z-index:950;
+    transform:translateX(-100%);transition:transform .22s ease;
+    box-shadow:2px 0 24px rgba(0,0,0,.35);
+  }
+  #sidebar.open{transform:translateX(0)}
+  .header-bc{display:none}
+}
 @media(max-width:720px){
-  #sidebar{display:none}
-  .g2,.g3,.g4{grid-template-columns:1fr}
+  .g2,.g3{grid-template-columns:1fr}
+  .g4{grid-template-columns:repeat(2,1fr)}
+  #content{padding:14px}
+  #header{padding:0 12px;gap:8px}
+  .profile-btn span#profile-name{display:none}
+  .mo-box{padding:18px}
+}
+@media(max-width:480px){
+  .g4{grid-template-columns:1fr}
+  #header{height:auto;min-height:var(--hh);padding:8px 10px;flex-wrap:wrap}
+  .header-right{width:100%;justify-content:space-between}
+  .login-box{width:92vw;padding:28px 22px}
+  table{font-size:11.5px}
+  th,td{padding:7px 8px}
+  .mo-box{width:96vw!important}
 }
 </style>
 </head>
@@ -269,6 +328,7 @@ select.filter-input{cursor:pointer}
     <div class="nav-sec">Аналитика</div>
     <div class="nav-item active" onclick="go('overview')" data-page="overview"><span class="ic">◈</span>Сводка</div>
     <div class="nav-item" onclick="go('users')" data-page="users"><span class="ic">◉</span>Пользователи</div>
+    <div class="nav-item" onclick="go('pending')" data-page="pending"><span class="ic">⏳</span>Незавершённые</div>
     <div class="nav-item" onclick="go('sources')" data-page="sources"><span class="ic">⬡</span>Источники</div>
     <div class="nav-sec">Монетизация</div>
     <div class="nav-item" onclick="go('promos')" data-page="promos"><span class="ic">◇</span>Промокоды</div>
@@ -289,8 +349,16 @@ select.filter-input{cursor:pointer}
 
 <div id="main">
   <div id="header">
-    <div class="header-bc">Вместе / <span id="page-title">Сводка</span></div>
+    <div style="display:flex;align-items:center;gap:10px;min-width:0">
+      <button class="mobile-menu-btn" onclick="toggleSidebar()" title="Меню">☰</button>
+      <div class="header-bc">Вместе / <span id="page-title">Сводка</span></div>
+    </div>
     <div class="header-right">
+      <div class="theme-switch" id="theme-switch">
+        <button class="theme-btn" data-theme-btn="main" onclick="setTheme('main')" title="Основная тема">💜</button>
+        <button class="theme-btn" data-theme-btn="light" onclick="setTheme('light')" title="Белая тема">☀</button>
+        <button class="theme-btn" data-theme-btn="dark" onclick="setTheme('dark')" title="Тёмная тема">🌙</button>
+      </div>
       <button class="btn" onclick="refreshCurrent()">↻ Обновить</button>
       <button class="profile-btn" onclick="openMyProfile()" id="profile-btn">
         <div class="profile-avatar" id="profile-av">?</div>
@@ -302,6 +370,7 @@ select.filter-input{cursor:pointer}
 </div>
 
 </div><!-- /#app -->
+<div id="sidebar-backdrop" onclick="toggleSidebar(false)"></div>
 
 <!-- MODAL -->
 <div id="mo" onclick="closeMo(event)">
@@ -415,12 +484,34 @@ async function saveMyProfile(){
 }
 
 /* ══════════════ NAV ══════════════ */
-const PAGE_TITLES = {overview:'Сводка',users:'Пользователи',sources:'Источники',promos:'Промокоды',pricing:'Цены',broadcast:'Рассылка',contacts:'Контакты',admins:'Аккаунты',settings:'Настройки',database:'База данных'};
+const PAGE_TITLES = {overview:'Сводка',users:'Пользователи',pending:'Незавершённые',sources:'Источники',promos:'Промокоды',pricing:'Цены',broadcast:'Рассылка',contacts:'Контакты',admins:'Аккаунты',settings:'Настройки',database:'База данных'};
 function go(page,arg){
   S.page=page; S.pageArg=arg;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
   document.getElementById('page-title').textContent = PAGE_TITLES[page]||page;
-  ({overview,users,sources,promos,pricing,broadcast,contacts,admins,settings,database,userProfile}[page]||(() => set('<div class="empty">404</div>')))(arg);
+  ({overview,users,pending,sources,promos,pricing,broadcast,contacts,admins,settings,database,userProfile}[page]||(() => set('<div class="empty">404</div>')))(arg);
+  toggleSidebar(false);
+  document.getElementById('content').scrollTop = 0;
+}
+
+/* ══════════════ MOBILE SIDEBAR ══════════════ */
+function toggleSidebar(force){
+  const sb = document.getElementById('sidebar');
+  const bd = document.getElementById('sidebar-backdrop');
+  const open = typeof force==='boolean' ? force : !sb.classList.contains('open');
+  sb.classList.toggle('open', open);
+  bd.classList.toggle('show', open);
+}
+
+/* ══════════════ THEME ══════════════ */
+function setTheme(name){
+  document.documentElement.setAttribute('data-theme', name);
+  localStorage.setItem('vmeste_theme', name);
+  document.querySelectorAll('.theme-btn').forEach(b=>b.classList.toggle('active', b.dataset.themeBtn===name));
+}
+function initTheme(){
+  const saved = localStorage.getItem('vmeste_theme') || 'main';
+  setTheme(saved);
 }
 function refreshCurrent(){ go(S.page, S.pageArg); }
 function set(html){ document.getElementById('content').innerHTML = html; }
@@ -488,7 +579,10 @@ async function overview(){
       </div>
 
       <!-- Блок: Pending -->
-      <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:8px">⏳ Незавершённые регистрации</div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1.5px">⏳ Незавершённые регистрации</div>
+        <button class="btn sm" onclick="go('pending')">Смотреть все →</button>
+      </div>
       <div class="g4" style="margin-bottom:20px">
         ${sc('Не завершили флоу',pendingCount,'Нажали /start, но не дошли до конца','warn')}
         ${sc('Уже получили нудж',nudgedCount,'Из числа pending','purple')}
@@ -693,6 +787,151 @@ function sortUsers(col){
   if(_usersSort.col===col) _usersSort.dir = _usersSort.dir==='asc'?'desc':'asc';
   else { _usersSort.col=col; _usersSort.dir='asc'; }
   renderUsersPage();
+}
+
+/* ══════════════ PENDING USERS (незавершённые регистрации) ══════════════ */
+let _pendingData=[], _pendingSort={col:'started_at',dir:'desc'};
+
+async function pending(){
+  set(spinner());
+  try{
+    const rows = await sel('pending_users','select=*&order=started_at.desc&limit=1000');
+    _pendingData = rows;
+    renderPendingPage();
+  }catch(e){ set(errBox(e)); }
+}
+
+function renderPendingPage(){
+  const prevSearch = document.getElementById('p-search')?.value ?? '';
+  const prevNudge = document.getElementById('p-nudge')?.value ?? '';
+  const rows = getSortedFilteredPending();
+  const {col,dir} = _pendingSort;
+  const sh=(c,label)=>`<th class="sortable${col===c?' sort-'+dir:''}" onclick="sortPending('${c}')">${label}</th>`;
+  const now = Date.now();
+  set(`
+    <div class="section-head">
+      <h2>Незавершённые регистрации <span style="color:var(--txt3);font-size:13px;font-weight:400">(${_pendingData.length})</span></h2>
+      <button class="btn" onclick="pending()">↻ Обновить</button>
+    </div>
+    <div style="font-size:12px;color:var(--txt3);margin:-6px 0 14px;line-height:1.6">
+      Пользователи, которые нажали <code>/start</code>, но не прошли регистрацию до конца. Им автоматически приходят напоминания от бота — отсюда также можно написать вручную.
+    </div>
+    <div class="filter-row">
+      <input class="filter-input" id="p-search" placeholder="Поиск по ID, username или имени…" style="width:240px" value="${esc(prevSearch)}" oninput="renderPendingPage()">
+      <select class="filter-input" id="p-nudge" onchange="renderPendingPage()">
+        <option value="" ${prevNudge===''?'selected':''}>Все</option>
+        <option value="0" ${prevNudge==='0'?'selected':''}>Ещё не нуджены</option>
+        <option value="1" ${prevNudge==='1'?'selected':''}>Уже получили нудж</option>
+      </select>
+      <span style="font-size:11px;color:var(--txt3)">Показано: ${rows.length}</span>
+    </div>
+    <div class="card" style="padding:0">
+      <div class="tw">
+        <table>
+          <thead><tr>
+            ${sh('tg_id','TG ID')}
+            <th>Username</th>
+            ${sh('first_name','Имя')}
+            ${sh('started_at','Начал флоу')}
+            <th>Ожидает</th>
+            ${sh('nudge_sent_at','Последний нудж')}
+            ${sh('nudge_count','Нуджей')}
+            <th></th>
+          </tr></thead>
+          <tbody>
+            ${rows.length ? rows.map(p=>{
+              const days = p.started_at ? Math.max(0,Math.floor((now-new Date(p.started_at))/864e5)) : null;
+              const waitLabel = days===null ? '—' : (days===0?'сегодня':`${days} дн.`);
+              return `
+              <tr>
+                <td><code>${p.tg_id}</code></td>
+                <td style="color:var(--txt3);font-size:11px">${p.username?'@'+esc(p.username):'—'}</td>
+                <td>${esc(p.first_name||'—')}</td>
+                <td style="color:var(--txt3)">${fd(p.started_at)}</td>
+                <td><span class="badge ${days>2?'bw':''}">${waitLabel}</span></td>
+                <td style="color:var(--txt3)">${fd(p.nudge_sent_at)}</td>
+                <td>${p.nudge_count>0?`<span class="badge bpur">${p.nudge_count}</span>`:'<span class="badge">0</span>'}</td>
+                <td><div class="td-act">
+                  <button class="btn sm acc" onclick="openPendingMessage(${p.tg_id},'${esc(p.username||p.first_name||p.tg_id)}')">✎ Написать</button>
+                  <button class="btn sm dan" onclick="confirmDeletePending(${p.tg_id})">✕</button>
+                </div></td>
+              </tr>`;
+            }).join('') : '<tr><td colspan="8"><div class="empty">Никого нет — все прошли регистрацию 🎉</div></td></tr>'}
+          </tbody>
+        </table>
+      </div>
+    </div>
+  `);
+}
+
+function getSortedFilteredPending(){
+  const q = (document.getElementById('p-search')?.value||'').toLowerCase();
+  const nudge = document.getElementById('p-nudge')?.value||'';
+  let rows = _pendingData.filter(p=>{
+    if(q && !String(p.tg_id).includes(q) && !(p.username||'').toLowerCase().includes(q) && !(p.first_name||'').toLowerCase().includes(q)) return false;
+    if(nudge==='0' && p.nudge_count>0) return false;
+    if(nudge==='1' && !(p.nudge_count>0)) return false;
+    return true;
+  });
+  const {col,dir} = _pendingSort;
+  rows.sort((a,b)=>{
+    let va=a[col]??'', vb=b[col]??'';
+    const cmp = String(va).localeCompare(String(vb), undefined, {numeric:true});
+    return dir==='asc'?cmp:-cmp;
+  });
+  return rows;
+}
+
+function sortPending(col){
+  if(_pendingSort.col===col) _pendingSort.dir = _pendingSort.dir==='asc'?'desc':'asc';
+  else { _pendingSort.col=col; _pendingSort.dir='desc'; }
+  renderPendingPage();
+}
+
+function openPendingMessage(tg_id,label){
+  openMo(`Написать: ${esc(label)}`, `
+    <div class="field">
+      <label>Текст сообщения</label>
+      <textarea id="pm-text" rows="6" placeholder="🩷 Привет! Заметили, что ты не закончил(а) регистрацию…"></textarea>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);margin-top:-6px">
+      Сообщение будет отправлено ботом через очередь рассылок (обычно в течение нескольких секунд).
+    </div>
+  `,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Отправить',c:'acc',o:`sendPendingMessage(${tg_id})`},
+  ]);
+}
+
+async function sendPendingMessage(tg_id){
+  const text = (document.getElementById('pm-text')?.value||'').trim();
+  if(!text){ toast('Введи текст сообщения','err'); return; }
+  try{
+    await ins('broadcasts',{
+      created_by: S.me?.login||'console',
+      audience:'specific',
+      target_ids:[tg_id],
+      text,
+      status:'pending',
+      sent_count:0,
+      fail_count:0,
+    });
+    closeMo();
+    toast('Сообщение поставлено в очередь ✓','ok');
+  }catch(e){ toast(e.message,'err'); }
+}
+
+function confirmDeletePending(tg_id){
+  openMo('Удалить из списка?', `<div style="font-size:13px;color:var(--txt2)">Пользователь <code>${tg_id}</code> будет удалён из таблицы <code>pending_users</code>. Это не блокирует и не удаляет самого пользователя в боте.</div>`,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Удалить',c:'dan',o:`deletePending(${tg_id})`},
+  ]);
+}
+async function deletePending(tg_id){
+  try{
+    await del('pending_users',`tg_id=eq.${tg_id}`);
+    closeMo(); toast(`#${tg_id} удалён из pending`,'warn'); pending();
+  }catch(e){ toast(e.message,'err'); }
 }
 
 /* ══════════════ USER PROFILE ══════════════ */
@@ -1460,8 +1699,22 @@ async function doChangePass(id){
 
 /* ══════════════ SETTINGS ══════════════ */
 function settings(){
+  const curTheme = localStorage.getItem('vmeste_theme')||'main';
+  const themeOpt = (val,label,emoji)=>`
+    <div onclick="setTheme('${val}');settings()" style="cursor:pointer;flex:1;min-width:120px;border:1px solid ${curTheme===val?'var(--acc)':'var(--bd)'};background:${curTheme===val?'rgba(244,114,154,.08)':'var(--bg3)'};border-radius:10px;padding:14px;text-align:center;transition:all .15s">
+      <div style="font-size:22px;margin-bottom:6px">${emoji}</div>
+      <div style="font-size:12px;color:${curTheme===val?'var(--acc)':'var(--txt2)'}">${label}</div>
+    </div>`;
   set(`
     <div class="section-head"><h2>Настройки</h2></div>
+    <div class="card">
+      <div class="card-title"><div class="dot"></div>Тема оформления</div>
+      <div style="display:flex;gap:10px;flex-wrap:wrap">
+        ${themeOpt('main','Основная','💜')}
+        ${themeOpt('light','Белая','☀')}
+        ${themeOpt('dark','Тёмная','🌙')}
+      </div>
+    </div>
     <div class="card">
       <div class="card-title"><div class="dot"></div>Информация о сессии</div>
       <div class="ie-row"><span class="ie-key">Вошёл как</span><span class="ie-val">${esc(S.me?.login||'?')}</span></div>
@@ -1992,6 +2245,7 @@ document.addEventListener('keydown',e=>{ if(e.key==='Escape') document.getElemen
 
 /* ══════════════ BOOTSTRAP ══════════════ */
 (function init(){
+  initTheme();
   const saved=localStorage.getItem('vmeste_session');
   if(saved){ try{ S.me=JSON.parse(saved); startApp(); return; }catch{} }
   // Enter key on login
