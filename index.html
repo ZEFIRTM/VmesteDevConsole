@@ -329,6 +329,7 @@ select.filter-input{cursor:pointer}
     <div class="nav-item active" onclick="go('overview')" data-page="overview"><span class="ic">◈</span>Сводка</div>
     <div class="nav-item" onclick="go('users')" data-page="users"><span class="ic">◉</span>Пользователи</div>
     <div class="nav-item" onclick="go('pending')" data-page="pending"><span class="ic">⏳</span>Незавершённые</div>
+    <div class="nav-item" onclick="go('cards')" data-page="cards"><span class="ic">♥</span>Карточки</div>
     <div class="nav-item" onclick="go('sources')" data-page="sources"><span class="ic">⬡</span>Источники</div>
     <div class="nav-sec">Монетизация</div>
     <div class="nav-item" onclick="go('promos')" data-page="promos"><span class="ic">◇</span>Промокоды</div>
@@ -484,12 +485,12 @@ async function saveMyProfile(){
 }
 
 /* ══════════════ NAV ══════════════ */
-const PAGE_TITLES = {overview:'Сводка',users:'Пользователи',pending:'Незавершённые',sources:'Источники',promos:'Промокоды',pricing:'Цены',broadcast:'Рассылка',contacts:'Контакты',admins:'Аккаунты',settings:'Настройки',database:'База данных'};
+const PAGE_TITLES = {overview:'Сводка',users:'Пользователи',pending:'Незавершённые',cards:'Карточки',sources:'Источники',promos:'Промокоды',pricing:'Цены',broadcast:'Рассылка',contacts:'Контакты',admins:'Аккаунты',settings:'Настройки',database:'База данных'};
 function go(page,arg){
   S.page=page; S.pageArg=arg;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
   document.getElementById('page-title').textContent = PAGE_TITLES[page]||page;
-  ({overview,users,pending,sources,promos,pricing,broadcast,contacts,admins,settings,database,userProfile}[page]||(() => set('<div class="empty">404</div>')))(arg);
+  ({overview,users,pending,cards,sources,promos,pricing,broadcast,contacts,admins,settings,database,userProfile}[page]||(() => set('<div class="empty">404</div>')))(arg);
   toggleSidebar(false);
   document.getElementById('content').scrollTop = 0;
 }
@@ -1162,6 +1163,196 @@ async function doTogglePremium(tg_id, val){
     toast(val?'Премиум выдан ✓':'Премиум снят','val'?'ok':'warn');
     const idx=_usersData.findIndex(u=>u.tg_id==tg_id);
     if(idx!==-1){ _usersData[idx].is_premium=val; renderUserProfilePage(_usersData[idx]); }
+  }catch(e){ toast(e.message,'err'); }
+}
+
+/* ══════════════ CARDS (preview generator) ══════════════ */
+const CARD_STYLES = {
+  dark:   { name:'🌑 Тёмный',   premium:false, bgTop:'#1a0a3c', bgBot:'#0d0820', accent:'#f47299', text:'#ffffff', muted:'#b48caa', label:'#f0c8dc' },
+  pink:   { name:'🌸 Розовый',  premium:true,  bgTop:'#ffdceb', bgBot:'#ffb9d2', accent:'#dc3c6e', text:'#b4285a', muted:'#b46490', label:'#966464' },
+  night:  { name:'🌌 Ночной',   premium:true,  bgTop:'#0a0f28', bgBot:'#050819', accent:'#648cff', text:'#ffffff', muted:'#7890c8', label:'#b4c8ff' },
+  forest: { name:'🌿 Лесной',   premium:true,  bgTop:'#0f2819', bgBot:'#08160e', accent:'#50c878', text:'#ffffff', muted:'#78b48c', label:'#a0e6b4' },
+  sunset: { name:'🌅 Закат',    premium:true,  bgTop:'#3c0f28', bgBot:'#78280a', accent:'#ff8c50', text:'#fff0dc', muted:'#c89678', label:'#ffc896' },
+  snow:   { name:'❄️ Снежный',  premium:true,  bgTop:'#dcebff', bgBot:'#c3d7f5', accent:'#5078c8', text:'#283c96', muted:'#7896d2', label:'#506eb4' },
+};
+
+function cards(){
+  set(`
+    <div class="section-head" style="margin-bottom:16px"><h2>Карточки</h2></div>
+
+    <div class="g2">
+      <!-- Левая колонка: форма -->
+      <div>
+        <div class="card">
+          <div class="card-title"><div class="dot"></div>Параметры карточки</div>
+          <div class="g2">
+            <div class="field"><label>Имя (твоё)</label><input id="cv-myname" placeholder="Аня" oninput="cardPreview()" value="Аня"></div>
+            <div class="field"><label>Имя партнёра</label><input id="cv-partner" placeholder="Миша" oninput="cardPreview()" value="Миша"></div>
+          </div>
+          <div class="field"><label>Дата начала</label><input id="cv-date" type="date" oninput="cardPreview()" value="${new Date(Date.now()-86400000*365).toISOString().slice(0,10)}"></div>
+          <div class="field"><label>Стиль</label>
+            <select id="cv-style" onchange="cardPreview()">
+              ${Object.entries(CARD_STYLES).map(([k,s])=>`<option value="${k}">${s.name}${s.premium?' (premium)':''}</option>`).join('')}
+            </select>
+          </div>
+          <div class="field"><label>Количество дней (вручную)</label>
+            <input id="cv-days-override" type="number" min="0" placeholder="Авто (считается из даты)" oninput="cardPreview()">
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="dot pur"></div>Быстрый поиск пользователя</div>
+          <div style="display:flex;gap:8px;margin-bottom:8px;flex-wrap:wrap">
+            <input class="filter-input" id="cv-uid" placeholder="TG ID пользователя" style="flex:1;min-width:140px">
+            <button class="btn acc" onclick="loadUserIntoCard()">Загрузить</button>
+          </div>
+          <div style="font-size:11px;color:var(--txt3)">Подтянет имена и дату прямо из базы</div>
+        </div>
+      </div>
+
+      <!-- Правая колонка: превью -->
+      <div>
+        <div class="card" style="padding:14px">
+          <div class="card-title"><div class="dot ok"></div>Превью</div>
+          <canvas id="card-canvas" width="800" height="500" style="width:100%;height:auto;max-width:100%;border-radius:8px;border:1px solid var(--bd);display:block"></canvas>
+          <div style="margin-top:12px;display:flex;gap:8px;flex-wrap:wrap">
+            <button class="btn acc" onclick="downloadCard()">↓ Скачать PNG</button>
+            <button class="btn" onclick="cardPreview()">↻ Обновить</button>
+          </div>
+        </div>
+      </div>
+    </div>
+  `);
+  setTimeout(cardPreview, 50);
+}
+
+function _declineCard(n){
+  if(11<=n%100&&n%100<=19) return 'дней';
+  const r=n%10;
+  if(r===1) return 'день';
+  if(r>=2&&r<=4) return 'дня';
+  return 'дней';
+}
+
+function cardPreview(){
+  const canvas = document.getElementById('card-canvas');
+  if(!canvas) return;
+  const ctx = canvas.getContext('2d');
+  const W=800, H=500;
+
+  const myName = document.getElementById('cv-myname')?.value.trim() || 'Аня';
+  const partnerName = document.getElementById('cv-partner')?.value.trim() || 'Миша';
+  const dateVal = document.getElementById('cv-date')?.value;
+  const styleKey = document.getElementById('cv-style')?.value || 'dark';
+  const daysOverride = document.getElementById('cv-days-override')?.value;
+  const s = CARD_STYLES[styleKey] || CARD_STYLES.dark;
+
+  let days = 365;
+  let startFmt = '14.02.2023';
+  if(dateVal){
+    const start = new Date(dateVal);
+    const today = new Date();
+    days = daysOverride ? parseInt(daysOverride) : Math.max(0, Math.floor((today-start)/86400000));
+    startFmt = start.toLocaleDateString('ru-RU',{day:'2-digit',month:'2-digit',year:'numeric'});
+  }
+  if(daysOverride) days = parseInt(daysOverride)||days;
+
+  // Gradient background
+  const grad = ctx.createLinearGradient(0,0,0,H);
+  grad.addColorStop(0, s.bgTop);
+  grad.addColorStop(1, s.bgBot);
+  ctx.fillStyle = grad;
+  ctx.fillRect(0,0,W,H);
+
+  // Glow
+  const glow = ctx.createRadialGradient(W/2,H/2,0,W/2,H/2,220);
+  glow.addColorStop(0, s.accent+'22');
+  glow.addColorStop(1, 'transparent');
+  ctx.fillStyle = glow;
+  ctx.fillRect(0,0,W,H);
+
+  // Card rect
+  ctx.save();
+  const rx=32, cx1=120, cy1=80, cx2=680, cy2=420;
+  ctx.beginPath();
+  ctx.moveTo(cx1+rx,cy1);
+  ctx.lineTo(cx2-rx,cy1); ctx.quadraticCurveTo(cx2,cy1,cx2,cy1+rx);
+  ctx.lineTo(cx2,cy2-rx); ctx.quadraticCurveTo(cx2,cy2,cx2-rx,cy2);
+  ctx.lineTo(cx1+rx,cy2); ctx.quadraticCurveTo(cx1,cy2,cx1,cy2-rx);
+  ctx.lineTo(cx1,cy1+rx); ctx.quadraticCurveTo(cx1,cy1,cx1+rx,cy1);
+  ctx.closePath();
+  ctx.fillStyle = s.accent+'1a';
+  ctx.fill();
+  ctx.strokeStyle = s.accent+'3c';
+  ctx.lineWidth=1; ctx.stroke();
+  ctx.restore();
+
+  // Names
+  ctx.fillStyle = s.accent;
+  ctx.font = 'bold 34px Inter, sans-serif';
+  ctx.textAlign = 'center';
+  const namesText = `${myName} & ${partnerName}`;
+  ctx.fillText(namesText, W/2, 150);
+
+  // Divider
+  ctx.strokeStyle = s.accent+'3c';
+  ctx.lineWidth=1;
+  ctx.beginPath(); ctx.moveTo(200,168); ctx.lineTo(600,168); ctx.stroke();
+
+  // Days number
+  ctx.fillStyle = s.text;
+  ctx.font = 'bold 96px Inter, sans-serif';
+  ctx.fillText(String(days), W/2, 275);
+
+  // Label
+  ctx.fillStyle = s.label;
+  ctx.font = '26px Inter, sans-serif';
+  ctx.fillText(`${_declineCard(days)} вместе`, W/2, 310);
+
+  // Divider 2
+  ctx.beginPath(); ctx.moveTo(200,333); ctx.lineTo(600,333); ctx.stroke();
+
+  // Start date
+  ctx.fillStyle = s.muted;
+  ctx.font = '20px Inter, sans-serif';
+  ctx.fillText(`с ${startFmt}`, W/2, 358);
+
+  // Heart
+  ctx.fillStyle = s.accent;
+  ctx.font = 'bold 28px Inter, sans-serif';
+  ctx.fillText('♥', W/2, 392);
+
+  // Watermark
+  ctx.fillStyle = s.muted+'88';
+  ctx.font = '20px Inter, sans-serif';
+  ctx.textAlign = 'right';
+  ctx.fillText('@TogetherDayBot', W-20, H-15);
+}
+
+function downloadCard(){
+  const canvas = document.getElementById('card-canvas');
+  if(!canvas){ toast('Нет карточки для скачивания','err'); return; }
+  const myName = document.getElementById('cv-myname')?.value.trim()||'card';
+  const partnerName = document.getElementById('cv-partner')?.value.trim()||'';
+  const a = document.createElement('a');
+  a.download = `${myName}_${partnerName}_card.png`.replace(/\s+/g,'_');
+  a.href = canvas.toDataURL('image/png');
+  a.click();
+}
+
+async function loadUserIntoCard(){
+  const uid = document.getElementById('cv-uid')?.value.trim();
+  if(!uid){ toast('Введи TG ID','err'); return; }
+  try{
+    const rows = await sel('users',`select=my_name,partner_name,start_date,card_style&tg_id=eq.${encodeURIComponent(uid)}&limit=1`);
+    if(!rows.length){ toast('Пользователь не найден','err'); return; }
+    const u = rows[0];
+    if(u.my_name) document.getElementById('cv-myname').value = u.my_name;
+    if(u.partner_name) document.getElementById('cv-partner').value = u.partner_name;
+    if(u.start_date) document.getElementById('cv-date').value = u.start_date;
+    if(u.card_style) document.getElementById('cv-style').value = u.card_style;
+    document.getElementById('cv-days-override').value = '';
+    cardPreview();
+    toast('Данные загружены ✓','ok');
   }catch(e){ toast(e.message,'err'); }
 }
 
