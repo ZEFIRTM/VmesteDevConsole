@@ -197,6 +197,26 @@ code{background:var(--bg4);border-radius:5px;padding:2px 6px;font-size:11px;colo
 
 /* KV grid (user profile) */
 .kv{display:grid;grid-template-columns:1fr 1fr;gap:8px}
+.style-row{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:14px 16px;display:flex;align-items:center;gap:14px;margin-bottom:10px;flex-wrap:wrap}
+.style-row-preview{flex-shrink:0}
+.style-row-info{flex:1;min-width:180px}
+.style-row-badges{display:flex;align-items:center;gap:8px;margin-bottom:4px;flex-wrap:wrap}
+.style-color-dots{display:flex;gap:4px;align-items:center;margin-top:6px;flex-wrap:wrap}
+.style-color-dots .dotc{width:16px;height:16px;border-radius:50%;border:1px solid var(--bd);flex-shrink:0}
+.style-row-actions{display:flex;gap:6px;flex-shrink:0;flex-wrap:wrap}
+.style-edit-head{display:flex;gap:14px;margin-bottom:16px;flex-wrap:wrap}
+.style-edit-head>.style-edit-fields{flex:1;min-width:220px}
+.color-picker-row{display:flex;align-items:center;gap:8px;margin-bottom:8px;flex-wrap:wrap}
+.color-picker-row input[type=color]{width:32px;height:28px;border:none;background:none;cursor:pointer;padding:0;flex-shrink:0}
+.color-picker-row .swatch{width:16px;height:16px;border-radius:4px;flex-shrink:0;border:1px solid var(--bd)}
+.color-picker-row label{font-size:11px;color:var(--txt2);flex:1;min-width:80px}
+.color-picker-row .hexlbl{font-size:10px;color:var(--txt3);font-family:'JetBrains Mono',monospace}
+@media(max-width:480px){
+  .style-row{flex-direction:column;align-items:stretch}
+  .style-row-preview{align-self:center}
+  .style-row-actions{width:100%}
+  .style-row-actions .btn{flex:1}
+}
 .kvi{background:var(--bg3);border-radius:7px;padding:10px 12px;position:relative}
 .kvi:hover .kv-edit-btn{opacity:1}
 .kv-edit-btn{position:absolute;top:6px;right:6px;opacity:0;background:none;border:none;cursor:pointer;color:var(--txt3);font-size:12px;padding:2px 5px;transition:opacity .15s,color .15s;border-radius:4px;font-family:'Inter',sans-serif}
@@ -329,11 +349,13 @@ select.filter-input{cursor:pointer}
     <div class="nav-item active" onclick="go('overview')" data-page="overview"><span class="ic">◈</span>Сводка</div>
     <div class="nav-item" onclick="go('users')" data-page="users"><span class="ic">◉</span>Пользователи</div>
     <div class="nav-item" onclick="go('pending')" data-page="pending"><span class="ic">⏳</span>Незавершённые</div>
-    <div class="nav-item" onclick="go('cards')" data-page="cards"><span class="ic">♥</span>Карточки</div>
     <div class="nav-item" onclick="go('sources')" data-page="sources"><span class="ic">⬡</span>Источники</div>
     <div class="nav-sec">Монетизация</div>
     <div class="nav-item" onclick="go('promos')" data-page="promos"><span class="ic">◇</span>Промокоды</div>
     <div class="nav-item" onclick="go('pricing')" data-page="pricing"><span class="ic">✦</span>Цены</div>
+    <div class="nav-sec">Контент</div>
+    <div class="nav-item" onclick="go('cards')" data-page="cards"><span class="ic">♥</span>Карточки</div>
+    <div class="nav-item" onclick="go('styles')" data-page="styles"><span class="ic">◎</span>Стили карточек</div>
     <div class="nav-sec">Маркетинг</div>
     <div class="nav-item" onclick="go('broadcast')" data-page="broadcast"><span class="ic">📣</span>Рассылка</div>
     <div class="nav-item" onclick="go('contacts')" data-page="contacts"><span class="ic">◎</span>Контакты</div>
@@ -485,12 +507,12 @@ async function saveMyProfile(){
 }
 
 /* ══════════════ NAV ══════════════ */
-const PAGE_TITLES = {overview:'Сводка',users:'Пользователи',pending:'Незавершённые',cards:'Карточки',sources:'Источники',promos:'Промокоды',pricing:'Цены',broadcast:'Рассылка',contacts:'Контакты',admins:'Аккаунты',settings:'Настройки',database:'База данных'};
+const PAGE_TITLES = {overview:'Сводка',users:'Пользователи',pending:'Незавершённые',sources:'Источники',promos:'Промокоды',pricing:'Цены',cards:'Карточки',styles:'Стили карточек',broadcast:'Рассылка',contacts:'Контакты',admins:'Аккаунты',settings:'Настройки',database:'База данных'};
 function go(page,arg){
   S.page=page; S.pageArg=arg;
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
   document.getElementById('page-title').textContent = PAGE_TITLES[page]||page;
-  ({overview,users,pending,cards,sources,promos,pricing,broadcast,contacts,admins,settings,database,userProfile}[page]||(() => set('<div class="empty">404</div>')))(arg);
+  ({overview,users,pending,sources,promos,pricing,cards,styles,broadcast,contacts,admins,settings,database,userProfile}[page]||(() => set('<div class="empty">404</div>')))(arg);
   toggleSidebar(false);
   document.getElementById('content').scrollTop = 0;
 }
@@ -1354,6 +1376,279 @@ async function loadUserIntoCard(){
     cardPreview();
     toast('Данные загружены ✓','ok');
   }catch(e){ toast(e.message,'err'); }
+}
+
+/* ══════════════ STYLES (card styles management) ══════════════ */
+const DEFAULT_STYLES = {
+  dark:  {name:'🌑 Тёмный',  premium:false, glow:[244,114,160], names:[244,114,160], days:[255,255,255], heart:[244,114,160], bg_top:[26,10,60],  bg_bottom:[13,8,32]},
+  pink:  {name:'🌸 Розовый', premium:true,  glow:[220,60,110],  names:[180,40,90],  days:[200,50,100],  heart:[220,60,110],  bg_top:[255,220,235],bg_bottom:[255,185,210]},
+  night: {name:'🌌 Ночной',  premium:true,  glow:[100,140,255], names:[140,170,255],days:[255,255,255], heart:[140,170,255], bg_top:[10,15,40],  bg_bottom:[5,8,25]},
+  forest:{name:'🌿 Лесной',  premium:true,  glow:[80,200,120],  names:[100,220,140],days:[255,255,255], heart:[100,220,140], bg_top:[15,40,25],  bg_bottom:[8,22,14]},
+  sunset:{name:'🌅 Закат',   premium:true,  glow:[255,140,80],  names:[255,180,100],days:[255,240,220], heart:[255,140,80],  bg_top:[60,15,40],  bg_bottom:[120,40,10]},
+  snow:  {name:'❄️ Снежный', premium:true,  glow:[80,120,200],  names:[60,90,180],  days:[40,70,160],   heart:[80,120,200],  bg_top:[220,235,255],bg_bottom:[195,215,245]},
+};
+const COLOR_FIELDS = [
+  {key:'glow',     label:'Свечение'},
+  {key:'names',    label:'Имена'},
+  {key:'days',     label:'Цифры дней'},
+  {key:'heart',    label:'Сердце'},
+  {key:'bg_top',   label:'Фон (верх)'},
+  {key:'bg_bottom',label:'Фон (низ)'},
+];
+let _stylesData = [];
+
+function rgbToHex(r,g,b){ return '#'+[r,g,b].map(v=>(v||0).toString(16).padStart(2,'0')).join(''); }
+function hexToRgb(h){ const m=/^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(h); return m?[parseInt(m[1],16),parseInt(m[2],16),parseInt(m[3],16)]:[0,0,0]; }
+
+function stylePreviewHtml(s){
+  const def = DEFAULT_STYLES[s.key] || {};
+  const colors = s.colors || {};
+  const glow = colors.glow || def.glow || [200,200,200];
+  const bg1 = colors.bg_top || def.bg_top || [30,30,30];
+  const bg2 = colors.bg_bottom || def.bg_bottom || [20,20,20];
+  const names = colors.names || def.names || [255,255,255];
+  const days = colors.days || def.days || [255,255,255];
+  const heart = colors.heart || def.heart || [255,100,100];
+  const bg = `linear-gradient(180deg,rgb(${bg1.join(',')}),rgb(${bg2.join(',')}))`;
+  const glowC = `rgba(${glow.join(',')},0.35)`;
+  return `<div class="style-row-preview" style="width:140px;height:90px;border-radius:8px;background:${bg};display:flex;flex-direction:column;align-items:center;justify-content:center;position:relative;overflow:hidden;border:1px solid var(--bd)">
+    <div style="position:absolute;top:50%;left:50%;width:60px;height:60px;border-radius:50%;background:${glowC};transform:translate(-50%,-50%);filter:blur(18px)"></div>
+    <div style="font-size:11px;font-weight:700;color:rgb(${names.join(',')});z-index:1;font-family:'Syne',sans-serif">A & B</div>
+    <div style="font-size:22px;font-weight:800;color:rgb(${days.join(',')});z-index:1;font-family:'Syne',sans-serif;line-height:1">365</div>
+    <div style="font-size:9px;color:rgba(255,255,255,.5);z-index:1">дней вместе</div>
+    <div style="position:absolute;bottom:4px;font-size:12px;color:rgb(${heart.join(',')});z-index:1">♥</div>
+  </div>`;
+}
+
+async function styles(){
+  set(spinner());
+  try{
+    let rows = [];
+    try{ rows = await sel('card_styles','select=*&order=sort_order.asc'); }catch(e){
+      if(e.message.includes('does not exist')||e.message.includes('42P01')){
+        toast('Таблица card_styles не найдена. Создай через раздел «База данных».','warn');
+        rows = Object.entries(DEFAULT_STYLES).map(([k,v],i)=>({key:k,name:v.name,is_premium:v.premium,is_enabled:true,sort_order:i,colors:v}));
+      } else throw e;
+    }
+    if(!rows.length){
+      rows = Object.entries(DEFAULT_STYLES).map(([k,v],i)=>({key:k,name:v.name,is_premium:v.premium,is_enabled:true,sort_order:i,colors:v}));
+    }
+    _stylesData = rows;
+    renderStylesPage();
+  }catch(e){ set(errBox(e)); }
+}
+
+function renderStylesPage(){
+  set(`
+    <div class="section-head">
+      <h2>Стили карточек</h2>
+      <div style="display:flex;gap:8px;flex-wrap:wrap">
+        <button class="btn acc" onclick="openCreateStyle()">+ Добавить стиль</button>
+        <button class="btn suc" onclick="syncColorsToDb()">↻ Записать цвета в БД</button>
+      </div>
+    </div>
+    <div style="font-size:11px;color:var(--txt3);margin-bottom:14px;line-height:1.7">
+      Управление стилями карточек. Отключённые стили не отображаются пользователям.<br>
+      Если стиль отключён, а пользователь нажмёт старую кнопку — получит уведомление что стиль недоступен.
+    </div>
+    <div>
+      ${_stylesData.map(s=>{
+        const def = DEFAULT_STYLES[s.key] || {};
+        const colors = s.colors || {};
+        return `<div class="style-row">
+          ${stylePreviewHtml(s)}
+          <div class="style-row-info">
+            <div class="style-row-badges">
+              <strong style="font-size:14px">${esc(s.name)}</strong>
+              <code style="font-size:10px">${esc(s.key)}</code>
+              ${s.is_premium?'<span class="badge bpk">Премиум</span>':'<span class="badge bg">Бесплатный</span>'}
+              ${s.is_enabled!==false?'<span class="badge bg">Включён</span>':'<span class="badge br">Отключён</span>'}
+            </div>
+            <div class="style-color-dots">
+              ${(colors.glow||def.glow||[]).length?`<div class="dotc" style="background:rgb(${(colors.glow||def.glow).join(',')})" title="Свечение"></div>`:''}
+              ${(colors.names||def.names||[]).length?`<div class="dotc" style="background:rgb(${(colors.names||def.names).join(',')})" title="Имена"></div>`:''}
+              ${(colors.days||def.days||[]).length?`<div class="dotc" style="background:rgb(${(colors.days||def.days).join(',')})" title="Дни"></div>`:''}
+              ${(colors.heart||def.heart||[]).length?`<div class="dotc" style="background:rgb(${(colors.heart||def.heart).join(',')})" title="Сердце"></div>`:''}
+              ${(colors.bg_top||def.bg_top||[]).length?`<div class="dotc" style="background:rgb(${(colors.bg_top||def.bg_top).join(',')})" title="Фон верх"></div>`:''}
+              ${(colors.bg_bottom||def.bg_bottom||[]).length?`<div class="dotc" style="background:rgb(${(colors.bg_bottom||def.bg_bottom).join(',')})" title="Фон низ"></div>`:''}
+              <span style="font-size:10px;color:var(--txt3);margin-left:4px">порядок: ${s.sort_order||0}</span>
+            </div>
+          </div>
+          <div class="style-row-actions">
+            <button class="btn sm" onclick="openEditStyle('${esc(s.key)}')">✎ Редактировать</button>
+            <button class="btn sm ${s.is_enabled!==false?'dan':'suc'}" onclick="toggleStyle('${esc(s.key)}',${s.is_enabled===false})">
+              ${s.is_enabled!==false?'Выключить':'Включить'}
+            </button>
+          </div>
+        </div>`;
+      }).join('')}
+    </div>
+  `);
+}
+
+function colorPickerRow(key, label, value, idPrefix){
+  const hex = Array.isArray(value) && value.length>=3 ? rgbToHex(value[0],value[1],value[2]) : '#888888';
+  const id = idPrefix+'-'+key;
+  return `<div class="color-picker-row">
+    <input type="color" id="${id}" value="${hex}">
+    <div class="swatch" style="background:${hex}"></div>
+    <label>${label}</label>
+    <span class="hexlbl">${hex}</span>
+  </div>`;
+}
+
+async function toggleStyle(key, enable){
+  try{
+    const existing = _stylesData.find(s=>s.key===key);
+    if(existing && existing.id){
+      await upd('card_styles',`id=eq.${existing.id}`,{is_enabled:enable});
+    } else {
+      const style = DEFAULT_STYLES[key];
+      if(!style) return;
+      await ins('card_styles',{key,name:style.name,is_premium:style.premium,is_enabled:enable,sort_order:Object.keys(DEFAULT_STYLES).indexOf(key),colors:style});
+    }
+    toast(enable?'Стиль включён ✓':'Стиль отключён ✓',enable?'ok':'warn');
+    styles();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+function openCreateStyle(){
+  const pk = Object.keys(DEFAULT_STYLES).length;
+  openMo('Добавить стиль',`
+    <div class="g2">
+      <div class="field"><label>Название</label><input id="cs-name" placeholder="🔥 Огненный"></div>
+      <div class="field"><label>Ключ (латиница)</label><input id="cs-key" placeholder="fire" oninput="this.value=this.value.toLowerCase().replace(/[^a-z0-9_]/g,'')"></div>
+    </div>
+    <div class="g2">
+      <div class="field"><label>Тип</label>
+        <select id="cs-premium"><option value="0">Бесплатный</option><option value="1">Премиум</option></select>
+      </div>
+      <div class="field"><label>Порядок</label><input id="cs-order" type="number" value="${pk}"></div>
+    </div>
+    <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin:14px 0 8px">Цвета</div>
+    <div id="cs-colors">${COLOR_FIELDS.map(c=>colorPickerRow(c.key,c.label,[200,200,200],'cs')).join('')}</div>
+    <div id="cs-preview" style="margin-top:10px"></div>
+  `,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Создать',c:'acc',o:'doCreateStyle()'},
+  ]);
+  setupColorPreviewSync('cs');
+}
+
+async function doCreateStyle(){
+  const key = document.getElementById('cs-key')?.value.trim();
+  const name = document.getElementById('cs-name')?.value.trim();
+  if(!key||!name){ toast('Заполни ключ и название','err'); return; }
+  if(_stylesData.find(s=>s.key===key)){ toast('Стиль с таким ключом уже существует','err'); return; }
+  const colors = readColorPickers('cs');
+  const row = {
+    key, name,
+    is_premium: document.getElementById('cs-premium')?.value==='1',
+    is_enabled: true,
+    sort_order: Number(document.getElementById('cs-order')?.value||0),
+    colors,
+  };
+  try{
+    await ins('card_styles',row);
+    closeMo(); toast(`Стиль ${name} создан ✓`,'ok'); styles();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+function openEditStyle(key){
+  const s = _stylesData.find(r=>r.key===key);
+  if(!s) return;
+  const def = DEFAULT_STYLES[key] || {};
+  const colors = s.colors || {};
+  openMo('Редактировать: '+s.name,`
+    <div class="style-edit-head">
+      ${stylePreviewHtml(s)}
+      <div class="style-edit-fields">
+        <div class="g2">
+          <div class="field"><label>Название</label><input id="cs-name" value="${esc(s.name)}"></div>
+          <div class="field"><label>Ключ</label><input value="${esc(s.key)}" readonly style="opacity:.5"></div>
+        </div>
+        <div class="g2">
+          <div class="field"><label>Тип</label>
+            <select id="cs-premium"><option value="0" ${!s.is_premium?'selected':''}>Бесплатный</option><option value="1" ${s.is_premium?'selected':''}>Премиум</option></select>
+          </div>
+          <div class="field"><label>Порядок</label><input id="cs-order" type="number" value="${s.sort_order||0}"></div>
+        </div>
+      </div>
+    </div>
+    <div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin-bottom:8px">Цвета</div>
+    <div id="cs-colors">${COLOR_FIELDS.map(c=>colorPickerRow(c.key,c.label,(colors[c.key]||def[c.key]||[200,200,200]),'cs')).join('')}</div>
+    <div id="cs-preview" style="margin-top:10px"></div>
+  `,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Сохранить',c:'acc',o:`doEditStyle('${esc(s.key)}')`},
+  ]);
+  setupColorPreviewSync('cs');
+}
+
+async function doEditStyle(key){
+  const s = _stylesData.find(r=>r.key===key);
+  const colors = readColorPickers('cs');
+  const row = {
+    name: document.getElementById('cs-name')?.value.trim()||s?.name,
+    is_premium: document.getElementById('cs-premium')?.value==='1',
+    sort_order: Number(document.getElementById('cs-order')?.value||0),
+    colors,
+  };
+  try{
+    if(s?.id){ await upd('card_styles',`id=eq.${s.id}`,row); }
+    else{ row.key=key; row.is_enabled=true; await ins('card_styles',row); }
+    closeMo(); toast('Стиль обновлён ✓','ok'); styles();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+function readColorPickers(prefix){
+  const colors = {};
+  for(const c of COLOR_FIELDS){
+    const hex = document.getElementById(prefix+'-'+c.key)?.value;
+    if(hex) colors[c.key] = hexToRgb(hex);
+  }
+  return colors;
+}
+
+function setupColorPreviewSync(prefix){
+  for(const c of COLOR_FIELDS){
+    const el = document.getElementById(prefix+'-'+c.key);
+    if(!el) continue;
+    el.addEventListener('input',()=>{
+      const swatch = el.parentElement.querySelector('.swatch');
+      if(swatch) swatch.style.background = el.value;
+      const hexLabel = el.parentElement.querySelector('.hexlbl');
+      if(hexLabel) hexLabel.textContent = el.value;
+      updateStylePreview(prefix);
+    });
+  }
+  setTimeout(()=>updateStylePreview(prefix),50);
+}
+
+function updateStylePreview(prefix){
+  const colors = readColorPickers(prefix);
+  const el = document.getElementById(prefix+'-preview');
+  if(!el) return;
+  const fakeStyle = {key:'preview',colors};
+  el.innerHTML = `<div style="font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:1px;margin-bottom:6px">Превью</div>` + stylePreviewHtml(fakeStyle);
+}
+
+async function syncColorsToDb(){
+  let count = 0;
+  for(const [key, def] of Object.entries(DEFAULT_STYLES)){
+    try{
+      const existing = _stylesData.find(s=>s.key===key);
+      const colors = existing?.colors || def;
+      if(existing?.id){
+        await upd('card_styles',`id=eq.${existing.id}`,{colors});
+      } else {
+        await ins('card_styles',{key,name:def.name,is_premium:def.premium,is_enabled:true,sort_order:Object.keys(DEFAULT_STYLES).indexOf(key),colors:def});
+      }
+      count++;
+    }catch(e){}
+  }
+  toast(`Цвета записаны для ${count} стилей ✓`,'ok');
+  styles();
 }
 
 /* ══════════════ SOURCES ══════════════ */
@@ -2297,6 +2592,26 @@ ON CONFLICT (login) DO NOTHING;`;
   const sql2=`-- Цена премиума
 INSERT INTO settings (key, value) VALUES ('premium_price', '50')
 ON CONFLICT (key) DO NOTHING;`;
+  const sql5=`-- Таблица стилей карточек
+CREATE TABLE IF NOT EXISTS card_styles (
+  id          BIGSERIAL PRIMARY KEY,
+  key         TEXT NOT NULL UNIQUE,
+  name        TEXT NOT NULL,
+  is_premium  BOOLEAN NOT NULL DEFAULT FALSE,
+  is_enabled  BOOLEAN NOT NULL DEFAULT TRUE,
+  sort_order  INT DEFAULT 0,
+  colors      JSONB DEFAULT '{}',
+  created_at  TIMESTAMPTZ DEFAULT NOW()
+);
+-- Синхронизация дефолтных стилей с цветами
+INSERT INTO card_styles (key, name, is_premium, is_enabled, sort_order, colors) VALUES
+  ('dark',   '🌑 Тёмный',   false, true, 0, '{"glow":[244,114,160],"names":[244,114,160],"days":[255,255,255],"heart":[244,114,160],"bg_top":[26,10,60],"bg_bottom":[13,8,32]}'),
+  ('pink',   '🌸 Розовый',  true,  true, 1, '{"glow":[220,60,110],"names":[180,40,90],"days":[200,50,100],"heart":[220,60,110],"bg_top":[255,220,235],"bg_bottom":[255,185,210]}'),
+  ('night',  '🌌 Ночной',   true,  true, 2, '{"glow":[100,140,255],"names":[140,170,255],"days":[255,255,255],"heart":[140,170,255],"bg_top":[10,15,40],"bg_bottom":[5,8,25]}'),
+  ('forest', '🌿 Лесной',   true,  true, 3, '{"glow":[80,200,120],"names":[100,220,140],"days":[255,255,255],"heart":[100,220,140],"bg_top":[15,40,25],"bg_bottom":[8,22,14]}'),
+  ('sunset', '🌅 Закат',    true,  true, 4, '{"glow":[255,140,80],"names":[255,180,100],"days":[255,240,220],"heart":[255,140,80],"bg_top":[60,15,40],"bg_bottom":[120,40,10]}'),
+  ('snow',   '❄️ Снежный',  true,  true, 5, '{"glow":[80,120,200],"names":[60,90,180],"days":[40,70,160],"heart":[80,120,200],"bg_top":[220,235,255],"bg_bottom":[195,215,245]}')
+ON CONFLICT (key) DO UPDATE SET colors = EXCLUDED.colors;`;
   const sql3=`-- Посмотреть все таблицы
 SELECT table_name,
   pg_size_pretty(pg_total_relation_size(
@@ -2338,6 +2653,11 @@ ORDER BY c.table_name, c.ordinal_position;`;
         <div class="card">
           <div class="card-title"><div class="dot"></div>SQL: добавить цену в settings</div>
           ${sqlBox(sql2)}
+        </div>
+        <div class="card">
+          <div class="card-title"><div class="dot pur"></div>SQL: таблица стилей карточек</div>
+          <div style="font-size:11px;color:var(--txt3);margin-bottom:6px">Нужна для раздела «Стили карточек»</div>
+          ${sqlBox(sql5)}
         </div>
         <div class="card">
           <div class="card-title"><div class="dot ok"></div>SQL: добавить медиа в рассылки, username в users, RLS для broadcasts</div>
