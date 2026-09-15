@@ -289,6 +289,41 @@ select.filter-input{cursor:pointer}
 .role-card-title{display:flex;align-items:center;gap:9px;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.3px}
 .role-card-actions{display:flex;gap:6px}
 
+/* PERMISSION MATRIX (просмотр / редактирование по разделам) */
+.perm-matrix-group{margin-bottom:14px}
+.perm-matrix-group:last-child{margin-bottom:0}
+.perm-matrix-group-title{font-size:9.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px}
+.perm-row{display:flex;align-items:center;gap:14px;padding:7px 10px;border-radius:8px;font-size:12px;background:var(--bg3);border:1px solid var(--bd)}
+.perm-row+.perm-row{margin-top:5px}
+.perm-row-label{flex:1;min-width:0;color:var(--txt);display:flex;align-items:center;gap:7px}
+.perm-check{display:flex;align-items:center;gap:5px;font-size:11px;color:var(--txt2);cursor:pointer;user-select:none;white-space:nowrap}
+.perm-check input{accent-color:var(--acc);width:14px;height:14px;cursor:pointer}
+.perm-row.readonly{background:transparent;border-color:var(--bd)}
+.perm-flag{font-size:10.5px;color:var(--txt3);display:flex;align-items:center;gap:4px;white-space:nowrap;min-width:96px}
+.perm-flag.on{color:var(--ok)}
+.view-only-banner{display:flex;align-items:center;gap:8px;background:rgba(245,166,35,.1);border:1px solid rgba(245,166,35,.3);color:var(--warn);border-radius:var(--r);padding:9px 14px;font-size:12px;margin-bottom:14px}
+.btn.perm-locked{opacity:.4;cursor:not-allowed;filter:grayscale(.3)}
+.btn.perm-locked:hover{opacity:.4}
+
+/* TOGGLE SWITCH */
+.switch-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:4px 0}
+.switch-label{font-size:12.5px;color:var(--txt)}
+.switch-sub{font-size:11px;color:var(--txt3);margin-top:2px}
+.switch{position:relative;display:inline-block;width:38px;height:22px;flex-shrink:0}
+.switch input{opacity:0;width:0;height:0}
+.switch-slider{position:absolute;cursor:pointer;inset:0;background:var(--bg4);border:1px solid var(--bd2);border-radius:22px;transition:all .15s}
+.switch-slider::before{content:"";position:absolute;height:16px;width:16px;left:2px;top:2px;background:var(--txt3);border-radius:50%;transition:all .15s}
+.switch input:checked+.switch-slider{background:rgba(244,114,154,.25);border-color:var(--acc)}
+.switch input:checked+.switch-slider::before{transform:translateX(16px);background:var(--acc)}
+
+/* SIDEBAR DRAG REORDER */
+.nav-item{position:relative}
+.nav-item[draggable="true"]{padding-left:8px}
+.drag-handle{opacity:0;cursor:grab;width:16px;text-align:center;color:var(--txt3);font-size:12px;flex-shrink:0;transition:opacity .12s}
+.nav-item:hover .drag-handle{opacity:1}
+.nav-item.dragging{opacity:.4;background:var(--bg3)}
+.nav-item[draggable="true"]:active .drag-handle{cursor:grabbing}
+
 /* promo uses mini table inside modal */
 .mini-table{width:100%;border-collapse:collapse;font-size:12px}
 .mini-table th{text-align:left;padding:5px 8px;font-size:10px;color:var(--txt3);text-transform:uppercase;letter-spacing:.6px;border-bottom:1px solid var(--bd);background:var(--thd2)}
@@ -366,28 +401,7 @@ select.filter-input{cursor:pointer}
       <div class="logo-sub">Dev Console</div>
     </div>
   </div>
-  <nav class="nav">
-    <div class="nav-sec">Аналитика</div>
-    <div class="nav-item active" onclick="go('overview')" data-page="overview"><span class="ic">◈</span>Сводка</div>
-    <div class="nav-item" onclick="go('users')" data-page="users"><span class="ic">◉</span>Пользователи</div>
-    <div class="nav-item" onclick="go('pending')" data-page="pending"><span class="ic">⏳</span>Незавершённые</div>
-    <div class="nav-item" onclick="go('sources')" data-page="sources"><span class="ic">⬡</span>Источники</div>
-    <div class="nav-sec">Монетизация</div>
-    <div class="nav-item" onclick="go('promos')" data-page="promos"><span class="ic">◇</span>Промокоды</div>
-    <div class="nav-item" onclick="go('pricing')" data-page="pricing"><span class="ic">✦</span>Цены</div>
-    <div class="nav-sec">Контент</div>
-    <div class="nav-item" onclick="go('cards')" data-page="cards"><span class="ic">♥</span>Карточки</div>
-    <div class="nav-item" onclick="go('styles')" data-page="styles"><span class="ic">◎</span>Стили карточек</div>
-    <div class="nav-sec">Маркетинг</div>
-    <div class="nav-item" onclick="go('broadcast')" data-page="broadcast"><span class="ic">📣</span>Рассылка</div>
-    <div class="nav-item" onclick="go('contacts')" data-page="contacts"><span class="ic">◎</span>Контакты</div>
-    <div class="nav-sec">Система</div>
-    <div class="nav-item" onclick="go('admins')" data-page="admins"><span class="ic">◈</span>Аккаунты</div>
-    <div class="nav-item" onclick="go('database')" data-page="database"><span class="ic">⬡</span>SQL Консоль</div>
-    <div class="nav-item" onclick="go('roles')" data-page="roles"><span class="ic">◆</span>Роли и доступы</div>
-    <div class="nav-item" onclick="go('settings')" data-page="settings"><span class="ic">⚙</span>Настройки</div>
-    <div class="nav-item" onclick="go('profile')" data-page="profile"><span class="ic">👤</span>Мой профиль</div>
-  </nav>
+  <nav class="nav" id="sidebar-nav"></nav>
   <div class="sidebar-footer">
     <span><span class="conn-dot" id="conn-dot"></span><span id="conn-label">Нет соединения</span></span>
     <button class="logout-btn" onclick="doLogout()">Выйти</button>
@@ -470,23 +484,46 @@ function currentPerms(){
   if(S.me.role==='superadmin') return [...ALL_PERM_KEYS]; // суперадмин всегда видит всё — защита от блокировки самого себя
   return getRoleDef(S.me.role).perms||[];
 }
+/* Разрешения хранятся как массив строк: 'ключ' = доступен просмотр, 'ключ:edit' = доступно и редактирование (подразумевает просмотр).
+   У встроенных ролей (superadmin/admin/viewer) градации нет — если раздел виден, он и редактируется, как и раньше. */
+function permHasView(perms,key){ return perms.includes(key)||perms.includes(key+':edit'); }
+function permHasEdit(perms,key,builtin){ return builtin ? perms.includes(key) : perms.includes(key+':edit'); }
 function canAccess(page){
   if(!ALL_PERM_KEYS.includes(page)) return true; // страницы вне системы прав (профиль и т.д.)
-  return currentPerms().includes(page);
+  if(S.me?.role==='superadmin') return true;
+  const def=getRoleDef(S.me?.role);
+  return permHasView(def.perms||[], page);
+}
+function canEditPage(page){
+  if(!ALL_PERM_KEYS.includes(page)) return true;
+  if(S.me?.role==='superadmin') return true;
+  const def=getRoleDef(S.me?.role);
+  return permHasEdit(def.perms||[], page, def.builtin);
 }
 async function loadRolesCache(){
   try{ window._customRoles = await sel('console_roles','select=*&order=created_at.asc'); }
   catch(e){ window._customRoles = []; }
 }
 function applyNavPermissions(){
-  const perms=currentPerms();
   document.querySelectorAll('.nav-item[data-page]').forEach(n=>{
     const p=n.dataset.page;
-    if(ALL_PERM_KEYS.includes(p)){
-      const ok=perms.includes(p);
-      n.style.display = ok ? '' : 'none';
-    }
+    if(ALL_PERM_KEYS.includes(p)) n.style.display = canAccess(p) ? '' : 'none';
   });
+}
+/* Блокирует кнопки создания/редактирования/удаления на странице, если у роли есть только "Просмотр" */
+function enforceEditGate(page){
+  const root=document.getElementById('content');
+  if(!root) return;
+  if(!ALL_PERM_KEYS.includes(page) || canEditPage(page)) return;
+  root.querySelectorAll('.btn.acc,.btn.dan,.btn.warn,.btn.suc').forEach(b=>{
+    b.disabled=true;
+    b.classList.add('perm-locked');
+    b.title='У твоей роли нет прав на редактирование этого раздела';
+  });
+  const banner=document.createElement('div');
+  banner.className='view-only-banner';
+  banner.innerHTML='👁 Режим только просмотра — у твоей роли нет прав на редактирование этого раздела';
+  root.prepend(banner);
 }
 function accessDeniedHtml(){
   return `<div class="card" style="text-align:center;padding:40px 20px">
@@ -494,6 +531,105 @@ function accessDeniedHtml(){
     <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px">Нет доступа</div>
     <div style="color:var(--txt3);font-size:12px">У твоей роли (${esc(roleLabel(S.me?.role))}) нет разрешения на этот раздел.</div>
   </div>`;
+}
+
+/* ══════════════ SIDEBAR: пункты меню + drag-n-drop сортировка ══════════════ */
+const NAV_STRUCTURE = [
+  {title:'Аналитика', items:[
+    {page:'overview', label:'Сводка', icon:'◈'},
+    {page:'users', label:'Пользователи', icon:'◉'},
+    {page:'pending', label:'Незавершённые', icon:'⏳'},
+    {page:'sources', label:'Источники', icon:'⬡'},
+  ]},
+  {title:'Монетизация', items:[
+    {page:'promos', label:'Промокоды', icon:'◇'},
+    {page:'pricing', label:'Цены', icon:'✦'},
+  ]},
+  {title:'Контент', items:[
+    {page:'cards', label:'Карточки', icon:'♥'},
+    {page:'styles', label:'Стили карточек', icon:'◎'},
+  ]},
+  {title:'Маркетинг', items:[
+    {page:'broadcast', label:'Рассылка', icon:'📣'},
+    {page:'contacts', label:'Контакты', icon:'◎'},
+  ]},
+  {title:'Система', items:[
+    {page:'admins', label:'Аккаунты', icon:'◈'},
+    {page:'database', label:'SQL Консоль', icon:'⬡'},
+    {page:'roles', label:'Роли и доступы', icon:'◆'},
+    {page:'settings', label:'Настройки', icon:'⚙'},
+    {page:'profile', label:'Мой профиль', icon:'👤'},
+  ]},
+];
+const SIDEBAR_ORDER_KEY='vmeste_sidebar_order_v1';
+const SIDEBAR_EDIT_KEY='vmeste_sidebar_edit_v1';
+
+function loadSidebarOrder(){ try{ return JSON.parse(localStorage.getItem(SIDEBAR_ORDER_KEY)||'{}'); }catch(e){ return {}; } }
+function saveSidebarOrder(order){ try{ localStorage.setItem(SIDEBAR_ORDER_KEY, JSON.stringify(order)); }catch(e){} }
+function isSidebarEditEnabled(){ return localStorage.getItem(SIDEBAR_EDIT_KEY)==='1'; }
+function setSidebarEditEnabled(v){ localStorage.setItem(SIDEBAR_EDIT_KEY, v?'1':'0'); buildSidebarNav(); }
+
+function orderedNavGroups(){
+  const saved=loadSidebarOrder();
+  return NAV_STRUCTURE.map(g=>{
+    const savedOrder=saved[g.title];
+    const items=[...g.items];
+    if(Array.isArray(savedOrder)){
+      items.sort((a,b)=>{
+        const ia=savedOrder.indexOf(a.page), ib=savedOrder.indexOf(b.page);
+        return (ia===-1?999:ia)-(ib===-1?999:ib);
+      });
+    }
+    return {title:g.title, items};
+  });
+}
+
+function buildSidebarNav(){
+  const nav=document.getElementById('sidebar-nav');
+  if(!nav) return;
+  const editMode=isSidebarEditEnabled();
+  nav.innerHTML = orderedNavGroups().map(g=>`
+    <div class="nav-sec">${esc(g.title)}</div>
+    <div class="nav-group" data-group="${esc(g.title)}">
+      ${g.items.map(it=>`
+        <div class="nav-item" data-page="${it.page}" ${editMode?'draggable="true"':''} onclick="${editMode?'':`go('${it.page}')`}">
+          ${editMode?'<span class="drag-handle">⠿⠿</span>':''}<span class="ic">${it.icon}</span>${esc(it.label)}
+        </div>`).join('')}
+    </div>`).join('');
+  if(editMode) wireSidebarDrag(nav);
+  applyNavPermissions();
+  document.querySelectorAll('.nav-item[data-page]').forEach(n=>n.classList.toggle('active', n.dataset.page===S.page));
+}
+
+let _dragSrcItem=null;
+function wireSidebarDrag(nav){
+  nav.querySelectorAll('.nav-item').forEach(item=>{
+    // в режиме редактирования клик по плашке переключает страницу только если это не было перетаскивание
+    item.addEventListener('click', ()=>{ if(!item.classList.contains('was-dragged')) go(item.dataset.page); item.classList.remove('was-dragged'); });
+    item.addEventListener('dragstart', e=>{
+      _dragSrcItem=item; item.classList.add('dragging'); e.dataTransfer.effectAllowed='move';
+    });
+    item.addEventListener('dragend', ()=>{
+      item.classList.remove('dragging');
+      if(_dragSrcItem===item) item.classList.add('was-dragged');
+      _dragSrcItem=null;
+      persistSidebarOrder();
+    });
+    item.addEventListener('dragover', e=>{
+      e.preventDefault();
+      if(!_dragSrcItem || _dragSrcItem===item) return;
+      const group=item.closest('.nav-group');
+      if(_dragSrcItem.closest('.nav-group')!==group) return; // перемещение только внутри своей группы
+      const rect=item.getBoundingClientRect();
+      const before=(e.clientY-rect.top) < rect.height/2;
+      group.insertBefore(_dragSrcItem, before?item:item.nextSibling);
+    });
+  });
+}
+function persistSidebarOrder(){
+  const order={};
+  document.querySelectorAll('.nav-group').forEach(g=>{ order[g.dataset.group]=[...g.querySelectorAll('.nav-item')].map(n=>n.dataset.page); });
+  saveSidebarOrder(order);
 }
 
 /* ══════════════ QUICK QUERIES (SQL консоль) ══════════════ */
@@ -554,13 +690,15 @@ async function doLogin(){
 function doLogout(){ localStorage.removeItem('vmeste_session'); location.reload(); }
 function showLoginErr(m){ const el=document.getElementById('login-err'); el.textContent=m; el.classList.add('show'); }
 
-function startApp(){
+async function startApp(){
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app').style.display='flex';
   renderHeaderAvatar();
   document.getElementById('profile-name').textContent = S.me.display_name||S.me.login;
   setConn(true);
-  applyNavPermissions();
+  // кэш кастомных ролей нужен ДО построения меню и проверки доступа (важно при восстановлении сессии после F5)
+  if(S.me.role!=='superadmin') await loadRolesCache().catch(()=>{});
+  buildSidebarNav();
   const initial = parseHash();
   go(initial.page, initial.arg, true);
 }
@@ -745,7 +883,7 @@ function initTheme(){
   setTheme(saved);
 }
 function refreshCurrent(){ go(S.page, S.pageArg); }
-function set(html){ document.getElementById('content').innerHTML = html; }
+function set(html){ document.getElementById('content').innerHTML = html; enforceEditGate(S.page); }
 
 /* ══════════════ OVERVIEW ══════════════ */
 async function overview(){
@@ -897,7 +1035,17 @@ async function overview(){
 }
 
 /* ══════════════ USERS (list) ══════════════ */
-let _usersData=[], _usersSort={col:'tg_id',dir:'asc'};
+/* ══════════════ UI STATE PERSISTENCE (сортировка/фильтры переживают перезагрузку страницы) ══════════════ */
+const UI_STATE_KEY='vmeste_ui_state_v1';
+function loadUiState(){ try{ return JSON.parse(localStorage.getItem(UI_STATE_KEY)||'{}'); }catch(e){ return {}; } }
+function saveUiState(patch){
+  const cur=loadUiState();
+  Object.assign(cur,patch);
+  try{ localStorage.setItem(UI_STATE_KEY, JSON.stringify(cur)); }catch(e){}
+}
+
+let _usersData=[], _usersSort=Object.assign({col:'tg_id',dir:'asc'}, loadUiState().usersSort||{});
+let _usersFilters=Object.assign({q:'',prem:'',rem:''}, loadUiState().usersFilters||{});
 const STYLE_NAMES={dark:'Тёмный',pink:'Розовый',night:'Ночной',forest:'Лесной',sunset:'Закат',snow:'Снежный'};
 function styleRu(s){ return STYLE_NAMES[s]||s||'dark'; }
 
@@ -926,9 +1074,13 @@ async function users(){
 let _cardCountsMap={}, _cardLastStyles={};
 
 function renderUsersPage(){
-  const prevSearch = document.getElementById('u-search')?.value ?? '';
-  const prevPrem = document.getElementById('u-premium')?.value ?? '';
-  const prevRem = document.getElementById('u-reminder')?.value ?? '';
+  // синхронизируем текущие значения полей (если форма уже отрисована) в постоянное состояние
+  if(document.getElementById('u-search')){
+    _usersFilters.q = document.getElementById('u-search').value;
+    _usersFilters.prem = document.getElementById('u-premium')?.value||'';
+    _usersFilters.rem = document.getElementById('u-reminder')?.value||'';
+    saveUiState({usersFilters:_usersFilters});
+  }
   const rows = getSortedFilteredUsers();
   const {col,dir} = _usersSort;
   const sh=(c,label)=>`<th class="sortable${col===c?' sort-'+dir:''}" onclick="sortUsers('${c}')">${label}</th>`;
@@ -937,16 +1089,16 @@ function renderUsersPage(){
       <h2>Пользователи <span style="color:var(--txt3);font-size:13px;font-weight:400">(${_usersData.length})</span></h2>
     </div>
     <div class="filter-row">
-      <input class="filter-input" id="u-search" placeholder="Поиск по ID или имени…" style="width:220px" value="${esc(prevSearch)}" oninput="renderUsersPage()">
+      <input class="filter-input" id="u-search" placeholder="Поиск по ID или имени…" style="width:220px" value="${esc(_usersFilters.q)}" oninput="renderUsersPage()">
       <select class="filter-input" id="u-premium" onchange="renderUsersPage()">
-        <option value="" ${prevPrem===''?'selected':''}>Все</option>
-        <option value="1" ${prevPrem==='1'?'selected':''}>Только премиум</option>
-        <option value="0" ${prevPrem==='0'?'selected':''}>Без премиума</option>
+        <option value="" ${_usersFilters.prem===''?'selected':''}>Все</option>
+        <option value="1" ${_usersFilters.prem==='1'?'selected':''}>Только премиум</option>
+        <option value="0" ${_usersFilters.prem==='0'?'selected':''}>Без премиума</option>
       </select>
       <select class="filter-input" id="u-reminder" onchange="renderUsersPage()">
-        <option value="" ${prevRem===''?'selected':''}>Все напоминания</option>
-        <option value="1" ${prevRem==='1'?'selected':''}>Напомин. вкл</option>
-        <option value="0" ${prevRem==='0'?'selected':''}>Напомин. выкл</option>
+        <option value="" ${_usersFilters.rem===''?'selected':''}>Все напоминания</option>
+        <option value="1" ${_usersFilters.rem==='1'?'selected':''}>Напомин. вкл</option>
+        <option value="0" ${_usersFilters.rem==='0'?'selected':''}>Напомин. выкл</option>
       </select>
       <span style="font-size:11px;color:var(--txt3)">Показано: ${rows.length}</span>
     </div>
@@ -993,9 +1145,9 @@ function renderUsersPage(){
 }
 
 function getSortedFilteredUsers(){
-  const q = (document.getElementById('u-search')?.value||'').toLowerCase();
-  const prem = document.getElementById('u-premium')?.value||'';
-  const rem  = document.getElementById('u-reminder')?.value||'';
+  const q = (_usersFilters.q||'').toLowerCase();
+  const prem = _usersFilters.prem||'';
+  const rem  = _usersFilters.rem||'';
   let rows = _usersData.filter(u=>{
     if(q && !String(u.tg_id).includes(q) && !(u.my_name||'').toLowerCase().includes(q) && !(u.partner_name||'').toLowerCase().includes(q)) return false;
     if(prem==='1' && !u.is_premium) return false;
@@ -1017,11 +1169,13 @@ function getSortedFilteredUsers(){
 function sortUsers(col){
   if(_usersSort.col===col) _usersSort.dir = _usersSort.dir==='asc'?'desc':'asc';
   else { _usersSort.col=col; _usersSort.dir='asc'; }
+  saveUiState({usersSort:_usersSort});
   renderUsersPage();
 }
 
 /* ══════════════ PENDING USERS (незавершённые регистрации) ══════════════ */
-let _pendingData=[], _pendingSort={col:'started_at',dir:'desc'};
+let _pendingData=[], _pendingSort=Object.assign({col:'started_at',dir:'desc'}, loadUiState().pendingSort||{});
+let _pendingFilters=Object.assign({q:'',nudge:''}, loadUiState().pendingFilters||{});
 
 async function pending(){
   set(spinner());
@@ -1033,8 +1187,11 @@ async function pending(){
 }
 
 function renderPendingPage(){
-  const prevSearch = document.getElementById('p-search')?.value ?? '';
-  const prevNudge = document.getElementById('p-nudge')?.value ?? '';
+  if(document.getElementById('p-search')){
+    _pendingFilters.q = document.getElementById('p-search').value;
+    _pendingFilters.nudge = document.getElementById('p-nudge')?.value||'';
+    saveUiState({pendingFilters:_pendingFilters});
+  }
   const rows = getSortedFilteredPending();
   const {col,dir} = _pendingSort;
   const sh=(c,label)=>`<th class="sortable${col===c?' sort-'+dir:''}" onclick="sortPending('${c}')">${label}</th>`;
@@ -1048,11 +1205,11 @@ function renderPendingPage(){
       Пользователи, которые нажали <code>/start</code>, но не прошли регистрацию до конца. Им автоматически приходят напоминания от бота — отсюда также можно написать вручную.
     </div>
     <div class="filter-row">
-      <input class="filter-input" id="p-search" placeholder="Поиск по ID, username или имени…" style="width:240px" value="${esc(prevSearch)}" oninput="renderPendingPage()">
+      <input class="filter-input" id="p-search" placeholder="Поиск по ID, username или имени…" style="width:240px" value="${esc(_pendingFilters.q)}" oninput="renderPendingPage()">
       <select class="filter-input" id="p-nudge" onchange="renderPendingPage()">
-        <option value="" ${prevNudge===''?'selected':''}>Все</option>
-        <option value="0" ${prevNudge==='0'?'selected':''}>Ещё не нуджены</option>
-        <option value="1" ${prevNudge==='1'?'selected':''}>Уже получили нудж</option>
+        <option value="" ${_pendingFilters.nudge===''?'selected':''}>Все</option>
+        <option value="0" ${_pendingFilters.nudge==='0'?'selected':''}>Ещё не нуджены</option>
+        <option value="1" ${_pendingFilters.nudge==='1'?'selected':''}>Уже получили нудж</option>
       </select>
       <span style="font-size:11px;color:var(--txt3)">Показано: ${rows.length}</span>
     </div>
@@ -1096,8 +1253,8 @@ function renderPendingPage(){
 }
 
 function getSortedFilteredPending(){
-  const q = (document.getElementById('p-search')?.value||'').toLowerCase();
-  const nudge = document.getElementById('p-nudge')?.value||'';
+  const q = (_pendingFilters.q||'').toLowerCase();
+  const nudge = _pendingFilters.nudge||'';
   let rows = _pendingData.filter(p=>{
     if(q && !String(p.tg_id).includes(q) && !(p.username||'').toLowerCase().includes(q) && !(p.first_name||'').toLowerCase().includes(q)) return false;
     if(nudge==='0' && p.nudge_count>0) return false;
@@ -1116,6 +1273,7 @@ function getSortedFilteredPending(){
 function sortPending(col){
   if(_pendingSort.col===col) _pendingSort.dir = _pendingSort.dir==='asc'?'desc':'asc';
   else { _pendingSort.col=col; _pendingSort.dir='desc'; }
+  saveUiState({pendingSort:_pendingSort});
   renderPendingPage();
 }
 
@@ -2395,22 +2553,47 @@ async function doChangePass(id){
 }
 
 /* ══════════════ ROLES & ACCESS ══════════════ */
-function permPillsHtml(perms, editableId){
-  return PERM_GROUPS.map(g=>`
-    <div style="margin-bottom:8px">
-      <div style="font-size:9.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">${esc(g.title)}</div>
-      <div class="pill-grid">
-        ${g.keys.map(([k,label])=>{
-          const on=perms.includes(k);
-          return editableId
-            ? `<span class="pill editable ${on?'on':''}" data-perm-key="${k}" onclick="toggleEditPill(this)">${on?'✓ ':''}${esc(label)}</span>`
-            : `<span class="pill ${on?'on':''}">${on?'✓ ':''}${esc(label)}</span>`;
-        }).join('')}
-      </div>
+/* Матрица «Просмотр / Редактирование» по каждому разделу.
+   editable=true → чекбоксы (для формы создания/изменения роли), иначе → только отображение (карточки ролей). */
+function permMatrixHtml(perms, editable, builtin){
+  return `<div class="perm-matrix">${PERM_GROUPS.map(g=>`
+    <div class="perm-matrix-group">
+      <div class="perm-matrix-group-title">${esc(g.title)}</div>
+      ${g.keys.map(([k,label])=>{
+        const v=permHasView(perms,k), e=permHasEdit(perms,k,builtin);
+        if(editable){
+          return `<div class="perm-row" data-perm-key="${k}">
+            <span class="perm-row-label">${esc(label)}</span>
+            <label class="perm-check"><input type="checkbox" class="perm-view" ${v?'checked':''} onchange="onPermViewChange(this)"> Просмотр</label>
+            <label class="perm-check"><input type="checkbox" class="perm-edit" ${e?'checked':''} onchange="onPermEditChange(this)"> Редактирование</label>
+          </div>`;
+        }
+        return `<div class="perm-row readonly">
+          <span class="perm-row-label">${esc(label)}</span>
+          <span class="perm-flag ${v?'on':''}">${v?'✓':'—'} Просмотр</span>
+          <span class="perm-flag ${e?'on':''}">${e?'✓':'—'} Редактирование</span>
+        </div>`;
+      }).join('')}
     </div>
-  `).join('');
+  `).join('')}</div>`;
 }
-function toggleEditPill(el){ el.classList.toggle('on'); el.textContent = (el.classList.contains('on')?'✓ ':'') + el.textContent.replace(/^✓ /,''); }
+function onPermViewChange(el){
+  if(!el.checked){ const ed=el.closest('.perm-row').querySelector('.perm-edit'); if(ed) ed.checked=false; }
+}
+function onPermEditChange(el){
+  if(el.checked){ const v=el.closest('.perm-row').querySelector('.perm-view'); if(v) v.checked=true; }
+}
+function collectEditedPerms(){
+  const perms=[];
+  document.querySelectorAll('#mb .perm-row[data-perm-key]').forEach(row=>{
+    const k=row.dataset.permKey;
+    const v=row.querySelector('.perm-view')?.checked;
+    const e=row.querySelector('.perm-edit')?.checked;
+    if(e) perms.push(k+':edit');
+    else if(v) perms.push(k);
+  });
+  return perms;
+}
 
 async function roles(){
   set(spinner());
@@ -2423,7 +2606,7 @@ async function roles(){
           <div class="role-card-title"><span class="dot ${key==='superadmin'?'pur':''}"></span>${esc(def.name)} <span class="badge bpur" style="font-size:9px">[${key.toUpperCase()}]</span> <span class="badge" style="font-size:9px">ВСТРОЕННАЯ</span></div>
           <div class="role-card-actions"><button class="btn sm" onclick="toast('Встроенные роли фиксированы и не редактируются — так безопаснее (чтобы никто случайно не остался без доступа)','warn')">👁 Просмотр</button></div>
         </div>
-        ${permPillsHtml(def.perms,null)}
+        ${permMatrixHtml(def.perms,false,true)}
       </div>`;
     const customCard = r=>`
       <div class="role-card">
@@ -2434,7 +2617,7 @@ async function roles(){
             <button class="btn sm dan" onclick="confirmDeleteRole('${esc(r.key)}',${r.id})">✕</button>
           </div>
         </div>
-        ${permPillsHtml(r.permissions||[],null)}
+        ${permMatrixHtml(r.permissions||[],false,false)}
       </div>`;
 
     const accounts = await sel('console_accounts','select=id,login,display_name,role,created_at&order=created_at.asc').catch(()=>[]);
@@ -2475,16 +2658,12 @@ function openCreateRole(){
   openMo('Создать роль', `
     <div class="field"><label>Название роли</label><input id="cr-name" placeholder="Например: Модератор промокодов"></div>
     <div class="field"><label>Ключ (латиницей, без пробелов)</label><input id="cr-key" placeholder="promo_moderator" autocomplete="off"></div>
-    <div class="field"><label>Разрешённые разделы</label>${permPillsHtml([],'cr')}</div>
+    <div class="field"><label>Доступ к разделам</label>${permMatrixHtml([],true,false)}</div>
   `,[
     {l:'Отмена',c:'',o:'closeMo()'},
     {l:'Создать',c:'acc',o:'doCreateRole()'},
   ]);
   document.getElementById('mo-box').classList.add('wide');
-}
-
-function collectEditedPerms(){
-  return [...document.querySelectorAll('.pill.editable.on')].map(el=>el.dataset.permKey);
 }
 
 async function doCreateRole(){
@@ -2508,7 +2687,7 @@ function openEditRole(key){
   if(!r){ toast('Роль не найдена','err'); return; }
   openMo('Изменить роль', `
     <div class="field"><label>Название роли</label><input id="cr-name" value="${esc(r.name)}"></div>
-    <div class="field"><label>Разрешённые разделы</label>${permPillsHtml(r.permissions||[],'cr')}</div>
+    <div class="field"><label>Доступ к разделам</label>${permMatrixHtml(r.permissions||[],true,false)}</div>
   `,[
     {l:'Отмена',c:'',o:'closeMo()'},
     {l:'Сохранить',c:'acc',o:`doEditRole(${r.id})`},
@@ -2561,6 +2740,17 @@ function settings(){
         ${themeOpt('light','Белая','☀')}
         ${themeOpt('dark','Тёмная','🌙')}
       </div>
+    </div>
+    <div class="card">
+      <div class="card-title"><div class="dot"></div>Боковое меню</div>
+      <div class="switch-row">
+        <div>
+          <div class="switch-label">Редактирование сайдбара</div>
+          <div class="switch-sub">Когда включено — на плашках разделов появляется ручка (⠿⠿), их можно перетаскивать и менять порядок внутри группы. Когда выключено — зажатие ЛКМ ничего не делает.</div>
+        </div>
+        <label class="switch"><input type="checkbox" ${isSidebarEditEnabled()?'checked':''} onchange="setSidebarEditEnabled(this.checked)"><span class="switch-slider"></span></label>
+      </div>
+      <div style="margin-top:10px"><button class="btn sm" onclick="saveSidebarOrder({});buildSidebarNav();toast('Порядок разделов сброшен ✓','ok')">↺ Сбросить порядок разделов</button></div>
     </div>
     <div class="card">
       <div class="card-title"><div class="dot"></div>Информация о сессии</div>
