@@ -263,9 +263,31 @@ select.filter-input{cursor:pointer}
 
 /* user profile page */
 .user-profile-header{display:flex;align-items:center;gap:16px;margin-bottom:20px;padding:18px;background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r)}
-.user-avatar-lg{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;font-family:'Syne',sans-serif;font-weight:800;color:#fff}
+.user-avatar-lg{width:52px;height:52px;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:22px;flex-shrink:0;font-family:'Syne',sans-serif;font-weight:800;color:#fff;overflow:hidden}
 .user-profile-name{font-family:'Syne',sans-serif;font-weight:800;font-size:20px}
 .user-profile-meta{font-size:11px;color:var(--txt3);margin-top:3px}
+
+/* PROFILE PAGE */
+.profile-page-grid{display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+@media(max-width:820px){.profile-page-grid{grid-template-columns:1fr}}
+.pf-avatar-wrap{width:110px;height:110px;border-radius:50%;margin:0 auto 14px;position:relative;cursor:pointer;flex-shrink:0}
+.pf-avatar-circle{width:100%;height:100%;border-radius:50%;background:linear-gradient(135deg,var(--acc),var(--acc2));display:flex;align-items:center;justify-content:center;font-size:40px;font-weight:800;font-family:'Syne',sans-serif;color:#fff;overflow:hidden}
+.pf-avatar-circle img{width:100%;height:100%;object-fit:cover}
+.pf-avatar-wrap::after{content:'📷 Изменить';position:absolute;inset:0;border-radius:50%;background:rgba(0,0,0,.55);color:#fff;font-size:10.5px;display:flex;align-items:center;justify-content:center;text-align:center;opacity:0;transition:opacity .15s;pointer-events:none}
+.pf-avatar-wrap:hover::after{opacity:1}
+.pf-role-badge{display:block;text-align:center;margin-top:2px}
+.profile-avatar img{width:100%;height:100%;object-fit:cover;border-radius:50%}
+
+/* PERMISSION PILLS */
+.pill-grid{display:flex;flex-wrap:wrap;gap:8px}
+.pill{display:inline-flex;align-items:center;gap:5px;padding:5px 11px;border-radius:20px;font-size:11px;border:1px solid var(--bd);color:var(--txt3);background:var(--bg3);white-space:nowrap}
+.pill.on{border-color:rgba(63,207,142,.4);color:var(--ok);background:rgba(63,207,142,.08)}
+.pill.editable{cursor:pointer;transition:all .12s;user-select:none}
+.pill.editable:hover{border-color:var(--bd2)}
+.role-card{background:var(--bg2);border:1px solid var(--bd);border-radius:var(--r);padding:16px 18px;margin-bottom:14px}
+.role-card-head{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
+.role-card-title{display:flex;align-items:center;gap:9px;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.3px}
+.role-card-actions{display:flex;gap:6px}
 
 /* promo uses mini table inside modal */
 .mini-table{width:100%;border-collapse:collapse;font-size:12px}
@@ -361,8 +383,10 @@ select.filter-input{cursor:pointer}
     <div class="nav-item" onclick="go('contacts')" data-page="contacts"><span class="ic">◎</span>Контакты</div>
     <div class="nav-sec">Система</div>
     <div class="nav-item" onclick="go('admins')" data-page="admins"><span class="ic">◈</span>Аккаунты</div>
-    <div class="nav-item" onclick="go('database')" data-page="database"><span class="ic">⬡</span>База данных</div>
+    <div class="nav-item" onclick="go('database')" data-page="database"><span class="ic">⬡</span>SQL Консоль</div>
+    <div class="nav-item" onclick="go('roles')" data-page="roles"><span class="ic">◆</span>Роли и доступы</div>
     <div class="nav-item" onclick="go('settings')" data-page="settings"><span class="ic">⚙</span>Настройки</div>
+    <div class="nav-item" onclick="go('profile')" data-page="profile"><span class="ic">👤</span>Мой профиль</div>
   </nav>
   <div class="sidebar-footer">
     <span><span class="conn-dot" id="conn-dot"></span><span id="conn-label">Нет соединения</span></span>
@@ -383,7 +407,7 @@ select.filter-input{cursor:pointer}
         <button class="theme-btn" data-theme-btn="dark" onclick="setTheme('dark')" title="Тёмная тема">🌙</button>
       </div>
       <button class="btn" onclick="refreshCurrent()">↻ Обновить</button>
-      <button class="profile-btn" onclick="openMyProfile()" id="profile-btn">
+      <button class="profile-btn" onclick="go('profile')" id="profile-btn">
         <div class="profile-avatar" id="profile-av">?</div>
         <span id="profile-name">—</span>
       </button>
@@ -416,6 +440,73 @@ const SB_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJ
 
 /* ══════════════ STATE ══════════════ */
 const S = { me: null, page: 'overview', url: SB_URL, key: SB_KEY };
+
+/* ══════════════ ROLES & PERMISSIONS ══════════════ */
+const PERM_GROUPS = [
+  {title:'Аналитика', keys:[['overview','Сводка'],['users','Пользователи'],['pending','Незавершённые'],['sources','Источники']]},
+  {title:'Монетизация', keys:[['promos','Промокоды'],['pricing','Цены']]},
+  {title:'Контент', keys:[['cards','Карточки'],['styles','Стили карточек']]},
+  {title:'Маркетинг', keys:[['broadcast','Рассылка'],['contacts','Контакты']]},
+  {title:'Система', keys:[['admins','Аккаунты'],['database','SQL Консоль'],['roles','Роли и доступы'],['settings','Настройки']]},
+];
+const ALL_PERM_KEYS = PERM_GROUPS.flatMap(g=>g.keys.map(k=>k[0]));
+const PERM_LABELS = Object.fromEntries(PERM_GROUPS.flatMap(g=>g.keys));
+const BUILTIN_ROLES = {
+  superadmin: {name:'Super Admin', perms:[...ALL_PERM_KEYS]},
+  admin:      {name:'Admin',       perms:ALL_PERM_KEYS.filter(k=>k!=='roles')},
+  viewer:     {name:'Viewer',      perms:['overview','users','cards']},
+};
+window._customRoles = []; // console_roles rows, загружаются при старте
+
+function getRoleDef(key){
+  if(BUILTIN_ROLES[key]) return {key, name:BUILTIN_ROLES[key].name, perms:BUILTIN_ROLES[key].perms, builtin:true};
+  const custom=(window._customRoles||[]).find(r=>r.key===key);
+  if(custom) return {key, name:custom.name, perms:custom.permissions||[], builtin:false, id:custom.id};
+  return {key, name:key||'—', perms:['overview'], builtin:false, unknown:true};
+}
+function roleLabel(key){ return getRoleDef(key).name; }
+function currentPerms(){
+  if(!S.me) return [];
+  if(S.me.role==='superadmin') return [...ALL_PERM_KEYS]; // суперадмин всегда видит всё — защита от блокировки самого себя
+  return getRoleDef(S.me.role).perms||[];
+}
+function canAccess(page){
+  if(!ALL_PERM_KEYS.includes(page)) return true; // страницы вне системы прав (профиль и т.д.)
+  return currentPerms().includes(page);
+}
+async function loadRolesCache(){
+  try{ window._customRoles = await sel('console_roles','select=*&order=created_at.asc'); }
+  catch(e){ window._customRoles = []; }
+}
+function applyNavPermissions(){
+  const perms=currentPerms();
+  document.querySelectorAll('.nav-item[data-page]').forEach(n=>{
+    const p=n.dataset.page;
+    if(ALL_PERM_KEYS.includes(p)){
+      const ok=perms.includes(p);
+      n.style.display = ok ? '' : 'none';
+    }
+  });
+}
+function accessDeniedHtml(){
+  return `<div class="card" style="text-align:center;padding:40px 20px">
+    <div style="font-size:32px;margin-bottom:10px">🔒</div>
+    <div style="font-family:'Syne',sans-serif;font-weight:700;font-size:15px;margin-bottom:6px">Нет доступа</div>
+    <div style="color:var(--txt3);font-size:12px">У твоей роли (${esc(roleLabel(S.me?.role))}) нет разрешения на этот раздел.</div>
+  </div>`;
+}
+
+/* ══════════════ QUICK QUERIES (SQL консоль) ══════════════ */
+const QUICK_QUERIES = [
+  ['Пользователи','users?select=*&order=start_date.desc&limit=20'],
+  ['Премиум','users?is_premium=eq.true&select=*'],
+  ['Незавершённые','pending_users?select=*&order=created_at.desc&limit=20'],
+  ['Промокоды','promos?select=*'],
+  ['Настройки','settings?select=*'],
+  ['Стили карточек','card_styles?select=*&order=sort_order.asc'],
+  ['Рассылки','broadcasts?select=id,audience,status,sent_count,fail_count,created_at&order=created_at.desc&limit=10'],
+  ['Аккаунты консоли','console_accounts?select=id,login,display_name,role,is_active'],
+];
 
 /* ══════════════ SUPABASE REST ══════════════ */
 function rest(p){ return SB_URL.replace(/\/$/, '') + '/rest/v1/' + p; }
@@ -454,6 +545,7 @@ async function doLogin(){
     if(!me){ showLoginErr('Неверный логин или пароль.'); return; }
     S.me = me;
     localStorage.setItem('vmeste_session', JSON.stringify(me));
+    await loadRolesCache();
     startApp();
   }catch(e){ showLoginErr(e.message); }
   finally{ btn.disabled=false; btn.textContent='Войти'; }
@@ -465,57 +557,173 @@ function showLoginErr(m){ const el=document.getElementById('login-err'); el.text
 function startApp(){
   document.getElementById('login-screen').classList.add('hidden');
   document.getElementById('app').style.display='flex';
-  const initials = (S.me.display_name||S.me.login||'?').charAt(0).toUpperCase();
-  document.getElementById('profile-av').textContent = initials;
+  renderHeaderAvatar();
   document.getElementById('profile-name').textContent = S.me.display_name||S.me.login;
   setConn(true);
-  go('overview');
+  applyNavPermissions();
+  const initial = parseHash();
+  go(initial.page, initial.arg, true);
 }
 
-function openMyProfile(){
+function renderHeaderAvatar(){
+  const el=document.getElementById('profile-av');
+  const initials = (S.me.display_name||S.me.login||'?').charAt(0).toUpperCase();
+  el.innerHTML = S.me.avatar_base64 ? `<img src="${S.me.avatar_base64}">` : initials;
+}
+
+/* ══════════════ MY PROFILE (страница) ══════════════ */
+function profilePage(){
   const m = S.me||{};
-  openMo('Мой профиль', `
-    <div class="user-profile-header" style="margin-bottom:0">
-      <div class="user-avatar-lg">${(m.display_name||m.login||'?').charAt(0).toUpperCase()}</div>
-      <div>
-        <div class="user-profile-name">${esc(m.display_name||m.login||'')}</div>
-        <div class="user-profile-meta">@${esc(m.login||'')} · роль: ${esc(m.role||'?')}</div>
+  const initials = (m.display_name||m.login||'?').charAt(0).toUpperCase();
+  const avatarInner = m.avatar_base64 ? `<img src="${m.avatar_base64}">` : initials;
+  set(`
+    <div class="section-head"><h2>Мой профиль</h2></div>
+    <div class="profile-page-grid">
+      <div class="card" style="text-align:center">
+        <div class="pf-avatar-wrap" onclick="document.getElementById('pf-avatar-input').click()">
+          <div class="pf-avatar-circle" id="pf-avatar-circle">${avatarInner}</div>
+        </div>
+        <input type="file" id="pf-avatar-input" accept="image/*" style="display:none" onchange="onAvatarSelect(this)">
+        <div class="user-profile-name" style="font-size:16px">${esc(m.display_name||m.login||'')}</div>
+        <div class="user-profile-meta" style="margin-bottom:8px">@${esc(m.login||'')}</div>
+        <span class="badge ${m.role==='superadmin'?'bpk':'bb'}">${esc(roleLabel(m.role))}</span>
+      </div>
+      <div class="card">
+        <div class="card-title"><div class="dot"></div>Редактировать профиль</div>
+        <div class="field"><label>Отображаемое имя</label><input id="pf-name" value="${esc(m.display_name||'')}"></div>
+        <div class="field"><label>Логин</label><input id="pf-login" value="${esc(m.login||'')}" disabled style="opacity:.55;cursor:not-allowed"></div>
+        <div class="g2">
+          <div class="field"><label>Новый пароль</label><input id="pf-pass" type="password" placeholder="Оставь пустым, чтобы не менять" autocomplete="new-password"></div>
+          <div class="field"><label>Подтверди пароль</label><input id="pf-pass2" type="password" placeholder="Повтори пароль" autocomplete="new-password"></div>
+        </div>
+        <button class="btn acc" onclick="saveProfilePage()">💾 Сохранить</button>
       </div>
     </div>
-    <hr class="divider">
-    <div class="field"><label>Новый пароль</label><input id="mp-pass" type="password" placeholder="Оставь пустым, чтобы не менять"></div>
-    <div class="field"><label>Отображаемое имя</label><input id="mp-name" value="${esc(m.display_name||'')}"></div>
-  `,[
-    {l:'Отмена',c:'',o:'closeMo()'},
-    {l:'Сохранить',c:'acc',o:'saveMyProfile()'},
-  ]);
+  `);
 }
 
-async function saveMyProfile(){
-  const pass = document.getElementById('mp-pass')?.value;
-  const name = document.getElementById('mp-name')?.value.trim();
-  if(!S.me?.id){ toast('ID аккаунта неизвестен — войди через таблицу', 'warn'); closeMo(); return; }
-  const fields = {};
-  if(pass) fields.password_hash = pass;
-  if(name) fields.display_name = name;
-  if(!Object.keys(fields).length){ closeMo(); return; }
+let _pendingAvatar=null;
+function onAvatarSelect(input){
+  const file=input.files[0];
+  if(!file) return;
+  if(!file.type.startsWith('image/')){ toast('Выбери файл-изображение','err'); return; }
+  const reader=new FileReader();
+  reader.onload=()=>{
+    const img=new Image();
+    img.onload=async ()=>{
+      // Обрезаем по центру в квадрат и уменьшаем — чтобы не раздувать базу
+      const size=220;
+      const canvas=document.createElement('canvas');
+      canvas.width=size; canvas.height=size;
+      const ctx=canvas.getContext('2d');
+      const s=Math.min(img.width,img.height);
+      ctx.drawImage(img,(img.width-s)/2,(img.height-s)/2,s,s,0,0,size,size);
+      const dataUrl=canvas.toDataURL('image/jpeg',0.85);
+      _pendingAvatar=dataUrl;
+      const circle=document.getElementById('pf-avatar-circle');
+      if(circle) circle.innerHTML=`<img src="${dataUrl}">`;
+      await saveAvatar(dataUrl);
+    };
+    img.src=reader.result;
+  };
+  reader.readAsDataURL(file);
+}
+
+async function saveAvatar(dataUrl){
+  const id = await ensureMyAccountId();
+  if(!id) return;
   try{
-    await upd('console_accounts',`id=eq.${S.me.id}`,fields);
-    if(name){ S.me.display_name=name; document.getElementById('profile-name').textContent=name; localStorage.setItem('vmeste_session',JSON.stringify(S.me)); }
-    closeMo(); toast('Профиль обновлён ✓','ok');
+    await upd('console_accounts',`id=eq.${id}`,{avatar_base64:dataUrl});
+    S.me.id=id; S.me.avatar_base64=dataUrl;
+    localStorage.setItem('vmeste_session',JSON.stringify(S.me));
+    renderHeaderAvatar();
+    toast('Фото обновлено ✓','ok');
+  }catch(e){
+    if(e.message&&e.message.includes('avatar_base64')){
+      toast('В таблице console_accounts нет колонки avatar_base64 — добавь её в Supabase (ALTER TABLE console_accounts ADD COLUMN avatar_base64 TEXT;)','err');
+    } else { toast(e.message,'err'); }
+  }
+}
+
+/* Подстраховка: если в сессии нет id (например, вход был через первый запуск без таблицы),
+   пытаемся найти аккаунт по логину, чтобы сохранение не терялось молча. */
+async function ensureMyAccountId(){
+  if(S.me?.id) return S.me.id;
+  try{
+    const rows=await sel('console_accounts',`select=id&login=eq.${encodeURIComponent(S.me.login)}&limit=1`);
+    if(rows.length){ S.me.id=rows[0].id; return rows[0].id; }
+  }catch(e){}
+  toast('Не удалось найти запись аккаунта в console_accounts — профиль хранится только локально в этой сессии','warn');
+  return null;
+}
+
+async function saveProfilePage(){
+  const name = document.getElementById('pf-name')?.value.trim();
+  const pass = document.getElementById('pf-pass')?.value;
+  const pass2 = document.getElementById('pf-pass2')?.value;
+  if(pass || pass2){
+    if(pass!==pass2){ toast('Пароли не совпадают','err'); return; }
+    if(pass.length<4){ toast('Пароль слишком короткий','err'); return; }
+  }
+  if(!name){ toast('Имя не может быть пустым','err'); return; }
+  const id = await ensureMyAccountId();
+  if(!id){
+    // нет записи в БД — сохраняем хотя бы в текущей сессии, чтобы не потерять правку
+    S.me.display_name=name;
+    document.getElementById('profile-name').textContent=name;
+    localStorage.setItem('vmeste_session',JSON.stringify(S.me));
+    return;
+  }
+  const fields={display_name:name};
+  if(pass) fields.password_hash=pass;
+  try{
+    const updated = await upd('console_accounts',`id=eq.${id}`,fields);
+    if(!updated || !updated.length){ toast('Запись не обновилась — проверь права доступа в Supabase','err'); return; }
+    // подтягиваем актуальную запись из БД, чтобы не полагаться на локальное состояние
+    S.me = {...S.me, ...updated[0]};
+    localStorage.setItem('vmeste_session',JSON.stringify(S.me));
+    document.getElementById('profile-name').textContent=S.me.display_name;
+    document.getElementById('pf-pass').value=''; document.getElementById('pf-pass2').value='';
+    toast('Профиль обновлён ✓','ok');
   }catch(e){ toast(e.message,'err'); }
 }
 
 /* ══════════════ NAV ══════════════ */
-const PAGE_TITLES = {overview:'Сводка',users:'Пользователи',pending:'Незавершённые',sources:'Источники',promos:'Промокоды',pricing:'Цены',cards:'Карточки',styles:'Стили карточек',broadcast:'Рассылка',contacts:'Контакты',admins:'Аккаунты',settings:'Настройки',database:'База данных'};
-function go(page,arg){
+const PAGE_TITLES = {overview:'Сводка',users:'Пользователи',pending:'Незавершённые',sources:'Источники',promos:'Промокоды',pricing:'Цены',cards:'Карточки',styles:'Стили карточек',broadcast:'Рассылка',contacts:'Контакты',admins:'Аккаунты',settings:'Настройки',database:'SQL Консоль',roles:'Роли и доступы',profile:'Мой профиль'};
+const PAGE_FNS = {overview,users,pending,sources,promos,pricing,cards,styles,broadcast,contacts,admins,settings,database,userProfile,roles,profile:profilePage};
+
+function parseHash(){
+  const h=(location.hash||'').replace(/^#/,'');
+  if(!h) return {page:'overview'};
+  const [page,arg]=h.split('/');
+  if(!PAGE_FNS[page]) return {page:'overview'};
+  return {page, arg: arg!==undefined?decodeURIComponent(arg):undefined};
+}
+let _fromHash=false;
+function go(page,arg,fromHash){
+  if(!PAGE_FNS[page]) page='overview';
+  if(!canAccess(page)){
+    S.page=page; S.pageArg=arg;
+    document.getElementById('page-title').textContent = PAGE_TITLES[page]||page;
+    document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
+    set(accessDeniedHtml());
+    toggleSidebar(false);
+    return;
+  }
   S.page=page; S.pageArg=arg;
+  const h = arg!=null ? `${page}/${encodeURIComponent(arg)}` : page;
+  if(!fromHash && location.hash.replace(/^#/,'')!==h){ history.replaceState(null,'',`#${h}`); }
   document.querySelectorAll('.nav-item').forEach(n=>n.classList.toggle('active',n.dataset.page===page));
   document.getElementById('page-title').textContent = PAGE_TITLES[page]||page;
-  ({overview,users,pending,sources,promos,pricing,cards,styles,broadcast,contacts,admins,settings,database,userProfile}[page]||(() => set('<div class="empty">404</div>')))(arg);
+  (PAGE_FNS[page]||(() => set('<div class="empty">404</div>')))(arg);
   toggleSidebar(false);
   document.getElementById('content').scrollTop = 0;
 }
+window.addEventListener('hashchange', ()=>{
+  if(!S.me) return;
+  const {page,arg}=parseHash();
+  if(page!==S.page || String(arg)!==String(S.pageArg)) go(page,arg,true);
+});
 
 /* ══════════════ MOBILE SIDEBAR ══════════════ */
 function toggleSidebar(force){
@@ -1426,7 +1634,7 @@ async function styles(){
     let rows = [];
     try{ rows = await sel('card_styles','select=*&order=sort_order.asc'); }catch(e){
       if(e.message.includes('does not exist')||e.message.includes('42P01')){
-        toast('Таблица card_styles не найдена. Создай через раздел «База данных».','warn');
+        toast('Таблица card_styles не найдена. Создай через раздел «SQL Консоль».','warn');
         rows = Object.entries(DEFAULT_STYLES).map(([k,v],i)=>({key:k,name:v.name,is_premium:v.premium,is_enabled:true,sort_order:i,colors:v}));
       } else throw e;
     }
@@ -2139,7 +2347,7 @@ async function admins(){
         <tbody>${rows.length?rows.map(a=>`<tr>
           <td><code>${esc(a.login)}</code></td>
           <td>${esc(a.display_name||'')}</td>
-          <td><span class="badge ${a.role==='superadmin'?'bpk':'bb'}">${esc(a.role||'viewer')}</span></td>
+          <td><span class="badge ${a.role==='superadmin'?'bpk':'bb'}">${esc(roleLabel(a.role||'viewer'))}</span></td>
           <td>${a.is_active?'<span class="badge bg">активен</span>':'<span class="badge br">заблокирован</span>'}</td>
           <td style="color:var(--txt3)">${fd(a.created_at)}</td>
           <td><div class="td-act">
@@ -2161,7 +2369,10 @@ function openAddAdmin(){
     <div class="g2">
       <div class="field"><label>Отображаемое имя</label><input id="aa-name" placeholder="Иван"></div>
       <div class="field"><label>Роль</label>
-        <select id="aa-role"><option value="superadmin">superadmin</option><option value="admin">admin</option><option value="viewer" selected>viewer</option></select>
+        <select id="aa-role">
+          ${[...Object.entries(BUILTIN_ROLES).map(([k,d])=>({k,name:d.name})), ...(window._customRoles||[]).map(r=>({k:r.key,name:r.name}))]
+            .map(o=>`<option value="${esc(o.k)}" ${o.k==='viewer'?'selected':''}>${esc(o.name)}</option>`).join('')}
+        </select>
       </div>
     </div>
   `,[{l:'Отмена',c:'',o:'closeMo()'},{l:'Создать',c:'acc',o:'doAddAdmin()'}]);
@@ -2181,6 +2392,156 @@ async function doChangePass(id){
   const pass=document.getElementById('cp-pass')?.value;
   if(!pass){ toast('Введи пароль','err'); return; }
   try{ await upd('console_accounts',`id=eq.${id}`,{password_hash:pass}); closeMo(); toast('Пароль изменён ✓','ok'); }catch(e){ toast(e.message,'err'); }
+}
+
+/* ══════════════ ROLES & ACCESS ══════════════ */
+function permPillsHtml(perms, editableId){
+  return PERM_GROUPS.map(g=>`
+    <div style="margin-bottom:8px">
+      <div style="font-size:9.5px;color:var(--txt3);text-transform:uppercase;letter-spacing:.8px;margin-bottom:6px">${esc(g.title)}</div>
+      <div class="pill-grid">
+        ${g.keys.map(([k,label])=>{
+          const on=perms.includes(k);
+          return editableId
+            ? `<span class="pill editable ${on?'on':''}" data-perm-key="${k}" onclick="toggleEditPill(this)">${on?'✓ ':''}${esc(label)}</span>`
+            : `<span class="pill ${on?'on':''}">${on?'✓ ':''}${esc(label)}</span>`;
+        }).join('')}
+      </div>
+    </div>
+  `).join('');
+}
+function toggleEditPill(el){ el.classList.toggle('on'); el.textContent = (el.classList.contains('on')?'✓ ':'') + el.textContent.replace(/^✓ /,''); }
+
+async function roles(){
+  set(spinner());
+  try{
+    await loadRolesCache();
+    const custom = window._customRoles||[];
+    const builtinCard = (key,def)=>`
+      <div class="role-card">
+        <div class="role-card-head">
+          <div class="role-card-title"><span class="dot ${key==='superadmin'?'pur':''}"></span>${esc(def.name)} <span class="badge bpur" style="font-size:9px">[${key.toUpperCase()}]</span> <span class="badge" style="font-size:9px">ВСТРОЕННАЯ</span></div>
+          <div class="role-card-actions"><button class="btn sm" onclick="toast('Встроенные роли фиксированы и не редактируются — так безопаснее (чтобы никто случайно не остался без доступа)','warn')">👁 Просмотр</button></div>
+        </div>
+        ${permPillsHtml(def.perms,null)}
+      </div>`;
+    const customCard = r=>`
+      <div class="role-card">
+        <div class="role-card-head">
+          <div class="role-card-title"><span class="dot ok"></span>${esc(r.name)} <span class="badge" style="font-size:9px">[${esc(r.key).toUpperCase()}]</span> <span class="badge bg" style="font-size:9px">КАСТОМНАЯ</span></div>
+          <div class="role-card-actions">
+            <button class="btn sm warn" onclick="openEditRole('${esc(r.key)}')">✎ Изменить</button>
+            <button class="btn sm dan" onclick="confirmDeleteRole('${esc(r.key)}',${r.id})">✕</button>
+          </div>
+        </div>
+        ${permPillsHtml(r.permissions||[],null)}
+      </div>`;
+
+    const accounts = await sel('console_accounts','select=id,login,display_name,role,created_at&order=created_at.asc').catch(()=>[]);
+    const roleOptions = ()=>{
+      const opts=[...Object.entries(BUILTIN_ROLES).map(([k,d])=>({k,name:d.name})), ...custom.map(r=>({k:r.key,name:r.name}))];
+      return opts;
+    };
+    const opts=roleOptions();
+
+    set(`
+      <div class="section-head"><h2>Роли и доступы</h2><button class="btn acc" onclick="openCreateRole()">+ Создать роль</button></div>
+
+      ${Object.entries(BUILTIN_ROLES).map(([k,d])=>builtinCard(k,d)).join('')}
+      ${custom.map(customCard).join('')}
+      ${!custom.length?'':''}
+
+      <div class="card" style="padding:0;margin-top:6px">
+        <div style="padding:14px 18px 4px" class="card-title" style="margin:0"><div class="dot"></div>Аккаунты и их роли</div>
+        <div class="tw"><table>
+          <thead><tr><th>Логин</th><th>Имя</th><th>Роль</th><th>Создан</th></tr></thead>
+          <tbody>${accounts.length?accounts.map(a=>`<tr>
+            <td><code>${esc(a.login)}</code></td>
+            <td>${esc(a.display_name||'')}</td>
+            <td>
+              <select class="filter-input" style="min-width:150px" ${a.login===S.me?.login?'disabled title="Нельзя менять свою роль — во избежание блокировки себя"':''} onchange="changeAccountRole(${a.id},this.value)">
+                ${opts.map(o=>`<option value="${esc(o.k)}" ${o.k===a.role?'selected':''}>${esc(o.name)}</option>`).join('')}
+              </select>
+            </td>
+            <td style="color:var(--txt3)">${fd(a.created_at)}</td>
+          </tr>`).join(''):'<tr><td colspan="4"><div class="empty">Нет аккаунтов</div></td></tr>'}</tbody>
+        </table></div>
+      </div>
+    `);
+  }catch(e){ set(errBox(e)); }
+}
+
+function openCreateRole(){
+  openMo('Создать роль', `
+    <div class="field"><label>Название роли</label><input id="cr-name" placeholder="Например: Модератор промокодов"></div>
+    <div class="field"><label>Ключ (латиницей, без пробелов)</label><input id="cr-key" placeholder="promo_moderator" autocomplete="off"></div>
+    <div class="field"><label>Разрешённые разделы</label>${permPillsHtml([],'cr')}</div>
+  `,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Создать',c:'acc',o:'doCreateRole()'},
+  ]);
+  document.getElementById('mo-box').classList.add('wide');
+}
+
+function collectEditedPerms(){
+  return [...document.querySelectorAll('.pill.editable.on')].map(el=>el.dataset.permKey);
+}
+
+async function doCreateRole(){
+  const name=document.getElementById('cr-name')?.value.trim();
+  let key=document.getElementById('cr-key')?.value.trim().toLowerCase().replace(/[^a-z0-9_]/g,'_');
+  const perms=collectEditedPerms();
+  if(!name||!key){ toast('Заполни название и ключ роли','err'); return; }
+  if(BUILTIN_ROLES[key]){ toast('Такой ключ занят встроенной ролью','err'); return; }
+  try{
+    await ins('console_roles',{key,name,permissions:perms});
+    closeMo(); toast(`Роль «${name}» создана ✓`,'ok'); roles();
+  }catch(e){
+    if(e.message&&(e.message.includes('42P01')||e.message.includes('does not exist'))){
+      toast('Таблица console_roles ещё не создана в Supabase — попроси разработчика выполнить одноразовую миграцию','err');
+    } else { toast(e.message,'err'); }
+  }
+}
+
+function openEditRole(key){
+  const r=(window._customRoles||[]).find(x=>x.key===key);
+  if(!r){ toast('Роль не найдена','err'); return; }
+  openMo('Изменить роль', `
+    <div class="field"><label>Название роли</label><input id="cr-name" value="${esc(r.name)}"></div>
+    <div class="field"><label>Разрешённые разделы</label>${permPillsHtml(r.permissions||[],'cr')}</div>
+  `,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Сохранить',c:'acc',o:`doEditRole(${r.id})`},
+  ]);
+  document.getElementById('mo-box').classList.add('wide');
+}
+
+async function doEditRole(id){
+  const name=document.getElementById('cr-name')?.value.trim();
+  const perms=collectEditedPerms();
+  if(!name){ toast('Название не может быть пустым','err'); return; }
+  try{
+    await upd('console_roles',`id=eq.${id}`,{name,permissions:perms});
+    closeMo(); toast('Роль обновлена ✓','ok'); roles();
+  }catch(e){ toast(e.message,'err'); }
+}
+
+function confirmDeleteRole(key,id){
+  openMo('Удалить роль?',`<div style="color:var(--txt2)">Роль «${esc(key)}» будет удалена. Аккаунты с этой ролью останутся без доступа, пока им не назначат другую роль.</div>`,[
+    {l:'Отмена',c:'',o:'closeMo()'},
+    {l:'Удалить',c:'dan',o:`doDeleteRole(${id})`},
+  ]);
+}
+async function doDeleteRole(id){
+  try{ await del('console_roles',`id=eq.${id}`); closeMo(); toast('Роль удалена','warn'); roles(); }catch(e){ toast(e.message,'err'); }
+}
+
+async function changeAccountRole(id,role){
+  try{
+    await upd('console_accounts',`id=eq.${id}`,{role});
+    toast('Роль аккаунта обновлена ✓','ok');
+    if(S.me?.id===id){ S.me.role=role; localStorage.setItem('vmeste_session',JSON.stringify(S.me)); applyNavPermissions(); }
+  }catch(e){ toast(e.message,'err'); roles(); }
 }
 
 /* ══════════════ SETTINGS ══════════════ */
@@ -2211,7 +2572,7 @@ function settings(){
       <div class="card-title"><div class="dot pur"></div>Подсказки</div>
       <div style="font-size:12px;color:var(--txt2);line-height:1.9">
         Для работы с SQL-запросами и инспекции базы данных используй раздел
-        <button class="btn sm pur" style="margin-left:4px" onclick="go('database')">⬡ База данных</button><br>
+        <button class="btn sm pur" style="margin-left:4px" onclick="go('database')">⬡ SQL Консоль</button><br>
         Там же можно выполнять произвольные запросы через Supabase RPC или REST API.
       </div>
     </div>
@@ -2576,158 +2937,70 @@ async function doDeleteBroadcast(id){
 
 /* ══════════════ DATABASE ══════════════ */
 function database(){
-  const sql1=`-- Таблица аккаунтов консоли
-CREATE TABLE IF NOT EXISTS console_accounts (
-  id            BIGSERIAL PRIMARY KEY,
-  login         TEXT NOT NULL UNIQUE,
-  password_hash TEXT NOT NULL,
-  display_name  TEXT,
-  role          TEXT NOT NULL DEFAULT 'viewer',
-  is_active     BOOLEAN NOT NULL DEFAULT TRUE,
-  created_at    TIMESTAMPTZ DEFAULT NOW()
-);
-INSERT INTO console_accounts (login, password_hash, display_name, role)
-VALUES ('admin', 'changeme', 'Администратор', 'superadmin')
-ON CONFLICT (login) DO NOTHING;`;
-  const sql2=`-- Цена премиума
-INSERT INTO settings (key, value) VALUES ('premium_price', '50')
-ON CONFLICT (key) DO NOTHING;`;
-  const sql5=`-- Таблица стилей карточек
-CREATE TABLE IF NOT EXISTS card_styles (
-  id          BIGSERIAL PRIMARY KEY,
-  key         TEXT NOT NULL UNIQUE,
-  name        TEXT NOT NULL,
-  is_premium  BOOLEAN NOT NULL DEFAULT FALSE,
-  is_enabled  BOOLEAN NOT NULL DEFAULT TRUE,
-  sort_order  INT DEFAULT 0,
-  colors      JSONB DEFAULT '{}',
-  created_at  TIMESTAMPTZ DEFAULT NOW()
-);
--- Синхронизация дефолтных стилей с цветами
-INSERT INTO card_styles (key, name, is_premium, is_enabled, sort_order, colors) VALUES
-  ('dark',   '🌑 Тёмный',   false, true, 0, '{"glow":[244,114,160],"names":[244,114,160],"days":[255,255,255],"heart":[244,114,160],"bg_top":[26,10,60],"bg_bottom":[13,8,32]}'),
-  ('pink',   '🌸 Розовый',  true,  true, 1, '{"glow":[220,60,110],"names":[180,40,90],"days":[200,50,100],"heart":[220,60,110],"bg_top":[255,220,235],"bg_bottom":[255,185,210]}'),
-  ('night',  '🌌 Ночной',   true,  true, 2, '{"glow":[100,140,255],"names":[140,170,255],"days":[255,255,255],"heart":[140,170,255],"bg_top":[10,15,40],"bg_bottom":[5,8,25]}'),
-  ('forest', '🌿 Лесной',   true,  true, 3, '{"glow":[80,200,120],"names":[100,220,140],"days":[255,255,255],"heart":[100,220,140],"bg_top":[15,40,25],"bg_bottom":[8,22,14]}'),
-  ('sunset', '🌅 Закат',    true,  true, 4, '{"glow":[255,140,80],"names":[255,180,100],"days":[255,240,220],"heart":[255,140,80],"bg_top":[60,15,40],"bg_bottom":[120,40,10]}'),
-  ('snow',   '❄️ Снежный',  true,  true, 5, '{"glow":[80,120,200],"names":[60,90,180],"days":[40,70,160],"heart":[80,120,200],"bg_top":[220,235,255],"bg_bottom":[195,215,245]}')
-ON CONFLICT (key) DO UPDATE SET colors = EXCLUDED.colors;`;
-  const sql3=`-- Посмотреть все таблицы
-SELECT table_name,
-  pg_size_pretty(pg_total_relation_size(
-    quote_ident(table_schema)||'.'||quote_ident(table_name)
-  )) AS size
-FROM information_schema.tables
-WHERE table_schema = 'public'
-ORDER BY table_name;`;
-  const sql4=`-- Структура таблиц
-SELECT c.table_name, c.column_name, c.data_type,
-       c.is_nullable, c.column_default
-FROM information_schema.columns c
-WHERE c.table_schema = 'public'
-ORDER BY c.table_name, c.ordinal_position;`;
   set(`
-    <div class="section-head"><h2>База данных</h2></div>
-    <div class="card" style="margin-bottom:14px">
-      <div class="card-title"><div class="dot ok"></div>Произвольный запрос к Supabase REST API</div>
-      <div class="g2" style="margin-bottom:10px">
-        <div class="field"><label>Таблица</label><input id="db-table" placeholder="users" autocomplete="off"></div>
-        <div class="field"><label>Query string</label><input id="db-query" placeholder="select=*&limit=10" autocomplete="off"></div>
+    <div class="section-head"><h2>SQL Консоль</h2></div>
+    <div class="card">
+      <div class="card-title"><div class="dot ok"></div>REST консоль</div>
+      <div style="font-size:11px;color:var(--txt3);margin-bottom:10px">
+        Supabase REST endpoint без /rest/v1/ — например: <code style="cursor:pointer" onclick="dbFillExample()">users?select=count</code>
       </div>
-      <div style="display:flex;gap:8px;margin-bottom:10px">
-        <button class="btn suc" onclick="dbRunSelect()">▶ Выполнить SELECT</button>
-        <button class="btn" onclick="dbClear()">Очистить</button>
+      <div style="display:flex;gap:8px;margin-bottom:10px;flex-wrap:wrap">
+        <select id="db-method" class="filter-input" style="width:110px;flex-shrink:0" onchange="dbToggleBody()">
+          <option value="GET">GET</option>
+          <option value="POST">POST</option>
+          <option value="PATCH">PATCH</option>
+          <option value="DELETE">DELETE</option>
+        </select>
+        <input id="db-endpoint" class="filter-input" style="flex:1;min-width:200px" placeholder="users?order=start_date.desc&limit=10" autocomplete="off" onkeydown="if(event.key==='Enter')dbRunQuery()">
+        <button class="btn acc" onclick="dbRunQuery()">▶ Выполнить</button>
       </div>
-      <div id="db-result" style="display:none">
-        <div style="font-size:10px;color:var(--txt3);margin-bottom:6px" id="db-result-meta"></div>
-        <div class="sql-box" id="db-result-box" style="max-height:320px;overflow-y:auto;font-size:11px"></div>
+      <div id="db-body-wrap" style="display:none;margin-bottom:10px">
+        <textarea id="db-body" class="filter-input" style="width:100%" rows="3" placeholder='{"key":"value"}  (тело запроса — для POST/PATCH)'></textarea>
       </div>
+      <div class="card-title" style="margin-top:6px"><div class="dot"></div>Результат</div>
+      <div id="db-result-box" class="sql-box" style="max-height:340px;overflow-y:auto;font-size:11px">Выполни запрос</div>
     </div>
-    <div class="g2">
-      <div>
-        <div class="card">
-          <div class="card-title"><div class="dot pur"></div>SQL: создать таблицу аккаунтов</div>
-          <div style="font-size:11px;color:var(--txt3);margin-bottom:6px">Supabase → SQL Editor → New Query</div>
-          ${sqlBox(sql1)}
-        </div>
-        <div class="card">
-          <div class="card-title"><div class="dot"></div>SQL: добавить цену в settings</div>
-          ${sqlBox(sql2)}
-        </div>
-        <div class="card">
-          <div class="card-title"><div class="dot pur"></div>SQL: таблица стилей карточек</div>
-          <div style="font-size:11px;color:var(--txt3);margin-bottom:6px">Нужна для раздела «Стили карточек»</div>
-          ${sqlBox(sql5)}
-        </div>
-        <div class="card">
-          <div class="card-title"><div class="dot ok"></div>SQL: добавить медиа в рассылки, username в users, RLS для broadcasts</div>
-          <div style="font-size:11px;color:var(--txt3);margin-bottom:6px">Выполни если ещё не добавлены эти колонки и политики</div>
-          ${sqlBox(`-- Медиафайлы в рассылках (фото/видео/гиф)
-ALTER TABLE broadcasts ADD COLUMN IF NOT EXISTS media_base64 TEXT;
-ALTER TABLE broadcasts ADD COLUMN IF NOT EXISTS media_type TEXT;
-
--- Username пользователя (для поиска в рассылке)
-ALTER TABLE users ADD COLUMN IF NOT EXISTS username TEXT;
-
--- RLS: разрешить боту (anon-ключ) читать и писать broadcasts
-ALTER TABLE broadcasts ENABLE ROW LEVEL SECURITY;
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname='broadcasts_anon_all' AND tablename='broadcasts') THEN
-    CREATE POLICY broadcasts_anon_all ON broadcasts FOR ALL USING (true) WITH CHECK (true);
-  END IF;
-END $$;
-
--- RLS: разрешить боту читать и писать pending_users
-ALTER TABLE pending_users ENABLE ROW LEVEL SECURITY;
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname='pending_users_anon_all' AND tablename='pending_users') THEN
-    CREATE POLICY pending_users_anon_all ON pending_users FOR ALL USING (true) WITH CHECK (true);
-  END IF;
-END $$;
-
--- RLS: разрешить боту писать в card_logs
-ALTER TABLE card_logs ENABLE ROW LEVEL SECURITY;
-DO $$ BEGIN
-  IF NOT EXISTS (SELECT 1 FROM pg_policies WHERE policyname='card_logs_anon_all' AND tablename='card_logs') THEN
-    CREATE POLICY card_logs_anon_all ON card_logs FOR ALL USING (true) WITH CHECK (true);
-  END IF;
-END $$;`)}
-        </div>
-      </div>
-      <div>
-        <div class="card">
-          <div class="card-title"><div class="dot ok"></div>SQL: инспекция БД</div>
-          ${sqlBox(sql3)}
-          <div style="margin-top:10px">${sqlBox(sql4)}</div>
-        </div>
+    <div class="card">
+      <div class="card-title"><div class="dot pur"></div>Быстрые запросы</div>
+      <div class="pill-grid">
+        ${QUICK_QUERIES.map(([label,q])=>`<button class="btn sm" onclick="dbQuickRun('${esc(q)}')">${esc(label)}</button>`).join('')}
       </div>
     </div>
   `);
 }
-
-async function dbRunSelect(){
-  const table = document.getElementById('db-table')?.value.trim();
-  const query = document.getElementById('db-query')?.value.trim() || 'select=*&limit=20';
-  if(!table){ toast('Введи название таблицы','err'); return; }
-  const resEl = document.getElementById('db-result');
-  const metaEl = document.getElementById('db-result-meta');
-  const boxEl = document.getElementById('db-result-box');
-  resEl.style.display='none';
-  try{
-    const rows = await sel(table, query);
-    resEl.style.display='block';
-    metaEl.textContent = `Получено строк: ${Array.isArray(rows)?rows.length:1} · ${table}?${query}`;
-    boxEl.textContent = JSON.stringify(rows, null, 2);
-  }catch(e){
-    resEl.style.display='block';
-    metaEl.textContent = 'Ошибка запроса';
-    boxEl.textContent = e.message;
-    boxEl.style.color='var(--bad)';
-  }
+function dbFillExample(){ document.getElementById('db-endpoint').value='users?select=count'; document.getElementById('db-method').value='GET'; }
+function dbToggleBody(){
+  const m=document.getElementById('db-method')?.value;
+  document.getElementById('db-body-wrap').style.display=(m==='POST'||m==='PATCH')?'block':'none';
 }
-function dbClear(){
-  const r=document.getElementById('db-result'); if(r) r.style.display='none';
-  const b=document.getElementById('db-result-box'); if(b) b.style.color='';
+function dbQuickRun(q){
+  document.getElementById('db-endpoint').value=q;
+  document.getElementById('db-method').value='GET';
+  dbToggleBody();
+  dbRunQuery();
+}
+async function dbRunQuery(){
+  const method=document.getElementById('db-method')?.value||'GET';
+  const path=document.getElementById('db-endpoint')?.value.trim();
+  const boxEl=document.getElementById('db-result-box');
+  if(!path){ toast('Введи endpoint','err'); return; }
+  let body, headers={};
+  if(method==='POST'||method==='PATCH'){
+    const raw=document.getElementById('db-body')?.value.trim();
+    if(raw){
+      try{ JSON.parse(raw); body=raw; }
+      catch{ toast('Некорректный JSON в теле запроса','err'); return; }
+    }
+    headers.Prefer='return=representation';
+  }
+  boxEl.style.color=''; boxEl.textContent='Выполняется…';
+  try{
+    const result = await api(path, {method, headers, body});
+    boxEl.textContent = JSON.stringify(result, null, 2) ?? 'OK (пустой ответ)';
+  }catch(e){
+    boxEl.style.color='var(--bad)';
+    boxEl.textContent = e.message;
+  }
 }
 
 /* ══════════════ HELPERS ══════════════ */
