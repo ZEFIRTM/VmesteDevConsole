@@ -288,6 +288,10 @@ select.filter-input{cursor:pointer}
 .role-card-head{display:flex;align-items:center;gap:10px;justify-content:space-between;margin-bottom:12px;flex-wrap:wrap}
 .role-card-title{display:flex;align-items:center;gap:9px;font-family:'Syne',sans-serif;font-weight:800;font-size:14px;letter-spacing:.3px}
 .role-card-actions{display:flex;gap:6px}
+.role-access-summary{font-size:12px;color:var(--txt2);margin-bottom:8px}
+.role-access-summary b{color:var(--txt)}
+.role-access-locked{font-size:11.5px;color:var(--txt3);background:var(--bg3);border:1px solid var(--bd);border-radius:8px;padding:8px 11px}
+.perm-matrix-wrap{margin-top:10px}
 
 /* PERMISSION MATRIX (просмотр / редактирование по разделам) */
 .perm-matrix-group{margin-bottom:14px}
@@ -593,7 +597,7 @@ function buildSidebarNav(){
     <div class="nav-group" data-group="${esc(g.title)}">
       ${g.items.map(it=>`
         <div class="nav-item" data-page="${it.page}" ${editMode?'draggable="true"':''} onclick="${editMode?'':`go('${it.page}')`}">
-          ${editMode?'<span class="drag-handle">⠿⠿</span>':''}<span class="ic">${it.icon}</span>${esc(it.label)}
+          ${editMode?'<span class="drag-handle">⠿</span>':''}<span class="ic">${it.icon}</span>${esc(it.label)}
         </div>`).join('')}
     </div>`).join('');
   if(editMode) wireSidebarDrag(nav);
@@ -2595,10 +2599,39 @@ function collectEditedPerms(){
   return perms;
 }
 
+/* Свёрнутый блок доступа роли — полную матрицу «Просмотр/Редактирование» видно только Super Admin */
+let _roleDetailsSeq=0;
+function roleAccessSummary(perms, builtin){
+  let viewCount=0, editCount=0;
+  ALL_PERM_KEYS.forEach(k=>{ if(permHasView(perms,k)) viewCount++; if(permHasEdit(perms,k,builtin)) editCount++; });
+  return {viewCount, editCount, total:ALL_PERM_KEYS.length};
+}
+function roleAccessBlockHtml(perms, builtin){
+  const {viewCount,editCount,total} = roleAccessSummary(perms,builtin);
+  const summaryLine = `<div class="role-access-summary">Доступно разделов: <b>${viewCount}/${total}</b> · с редактированием: <b>${editCount}</b></div>`;
+  if(S.me?.role!=='superadmin'){
+    return `${summaryLine}<div class="role-access-locked">🔒 Подробный список прав по разделам виден только роли Super Admin</div>`;
+  }
+  const id='role-details-'+(_roleDetailsSeq++);
+  return `
+    ${summaryLine}
+    <button class="btn sm" id="${id}-btn" onclick="toggleRoleDetails('${id}')">▸ Показать доступ по разделам</button>
+    <div id="${id}" class="perm-matrix-wrap" style="display:none">${permMatrixHtml(perms,false,builtin)}</div>
+  `;
+}
+function toggleRoleDetails(id){
+  const wrap=document.getElementById(id), btn=document.getElementById(id+'-btn');
+  if(!wrap) return;
+  const show = wrap.style.display==='none';
+  wrap.style.display = show?'':'none';
+  if(btn) btn.textContent = show?'▾ Скрыть доступ по разделам':'▸ Показать доступ по разделам';
+}
+
 async function roles(){
   set(spinner());
   try{
     await loadRolesCache();
+    _roleDetailsSeq=0;
     const custom = window._customRoles||[];
     const builtinCard = (key,def)=>`
       <div class="role-card">
@@ -2606,7 +2639,7 @@ async function roles(){
           <div class="role-card-title"><span class="dot ${key==='superadmin'?'pur':''}"></span>${esc(def.name)} <span class="badge bpur" style="font-size:9px">[${key.toUpperCase()}]</span> <span class="badge" style="font-size:9px">ВСТРОЕННАЯ</span></div>
           <div class="role-card-actions"><button class="btn sm" onclick="toast('Встроенные роли фиксированы и не редактируются — так безопаснее (чтобы никто случайно не остался без доступа)','warn')">👁 Просмотр</button></div>
         </div>
-        ${permMatrixHtml(def.perms,false,true)}
+        ${roleAccessBlockHtml(def.perms,true)}
       </div>`;
     const customCard = r=>`
       <div class="role-card">
@@ -2617,7 +2650,7 @@ async function roles(){
             <button class="btn sm dan" onclick="confirmDeleteRole('${esc(r.key)}',${r.id})">✕</button>
           </div>
         </div>
-        ${permMatrixHtml(r.permissions||[],false,false)}
+        ${roleAccessBlockHtml(r.permissions||[],false)}
       </div>`;
 
     const accounts = await sel('console_accounts','select=id,login,display_name,role,created_at&order=created_at.asc').catch(()=>[]);
@@ -2746,7 +2779,7 @@ function settings(){
       <div class="switch-row">
         <div>
           <div class="switch-label">Редактирование сайдбара</div>
-          <div class="switch-sub">Когда включено — на плашках разделов появляется ручка (⠿⠿), их можно перетаскивать и менять порядок внутри группы. Когда выключено — зажатие ЛКМ ничего не делает.</div>
+          <div class="switch-sub">Когда включено — на плашках разделов появляется ручка (⠿), их можно перетаскивать и менять порядок внутри группы. Когда выключено — зажатие ЛКМ ничего не делает.</div>
         </div>
         <label class="switch"><input type="checkbox" ${isSidebarEditEnabled()?'checked':''} onchange="setSidebarEditEnabled(this.checked)"><span class="switch-slider"></span></label>
       </div>
